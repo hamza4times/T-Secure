@@ -35,8 +35,7 @@ export function date(value,withTime=false) {
   if(Number.isNaN(when.getTime()))return 'Date unavailable';
   return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',...(withTime?{hour:'numeric',minute:'2-digit'}:{})}).format(when);
 }
-// One vocabulary for every risk display: calls, messages, history, and alerts.
-export const riskLabels={low:'Low risk',unknown:'More information needed',caution:'Elevated risk',high:'High risk'};
+export const riskLabels={low:'No clear warning signs',unknown:'More information needed',caution:'Pause and verify',high:'High-risk warning'};
 export function badge(risk='low') {return `<span class="risk-badge ${h(risk)}">${icon(risk==='high'||risk==='caution'?'alert':risk==='unknown'?'info':'check')}${h(riskLabels[risk]||riskLabels.unknown)}</span>`;}
 export function highlight(text,reasons=[]) {
   const ranges=[];
@@ -51,5 +50,5 @@ export function highlight(text,reasons=[]) {
   return output+h(text.slice(end));
 }
 export function contactAction(contact) {
-  return contact ? `<a class="button secondary" href="tel:${h(contact.phone.replace(/[^+\d]/g,''))}">${icon('phone')}Call ${h(contact.displayName||contact.name)}</a>` : `<a class="button secondary" href="#/settings#trusted-contacts">${icon('plus')}Add a trusted contact</a>`;
+  return contact ? `<a class="button secondary" href="tel:${h(contact.phone.replace(/[^+\d]/g,''))}">${icon('phone')}Call ${h(contact.name)}</a>` : `<a class="button secondary" href="#/settings">${icon('plus')}Add a trusted contact</a>`;
 }
