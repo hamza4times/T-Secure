@@ -11,7 +11,7 @@ import * as views from './views.js';
 const client=new Client();
 const ui={
   scenario:'family',call:{status:'idle',turns:[],analysis:{risk:'low',reasons:[]}},
-  messageText:'',messageResult:null,messageBusy:false,profileBusy:false,profileOperation:0,
+  messageText:'',messageSender:'',messageChecked:null,messageResult:null,messageBusy:false,profileBusy:false,profileOperation:0,
   authMode:'login',recoveryTopic:'payment',recoverySteps:[],menuOpen:false,callAudio:'visual',audioUnavailable:false,
 };
 const app=document.querySelector('#app');
@@ -92,7 +92,7 @@ const session=new CallSession({
     if(active&&route().name==='calls'&&snapshot.alert&&snapshot.alert.id!==lastCallAlertId){
       lastCallAlertId=snapshot.alert.id;
       const announcement=document.querySelector('#call-announcement');
-      if(announcement)announcement.textContent=snapshot.alert.risk==='high'?'High-risk warning. The practice call is paused. Verify the caller independently.':'Caution. Pressure or urgency deserves a second look.';
+      if(announcement)announcement.textContent=snapshot.alert.risk==='high'?'High risk. The practice call is paused. Verify the caller independently.':'Elevated risk. Pressure or urgency deserves a second look.';
       if(snapshot.alert.risk==='high')openCallWarning();
       callAudio.play(snapshot.alert.risk);
     }
@@ -158,12 +158,13 @@ document.addEventListener('click',async(event)=>{
       case 'continue-call':closeCallWarning(true);break;
       case 'review-call-warning':session.pause();openCallWarning();break;
       case 'pause-to-verify':session.pause();document.querySelector('.call-guidance')?.focus();break;
-      case 'message-sample':ui.messageText=messageSamples[Number(button.dataset.index)].text;ui.messageResult=null;render();document.querySelector('#message-text')?.focus();break;
+      case 'message-sample':{const sample=messageSamples[Number(button.dataset.index)];ui.messageText=sample.text;ui.messageSender=sample.sender||'';ui.messageResult=null;ui.messageChecked=null;}render();document.querySelector('#message-text')?.focus();break;
+      case 'show-evidence':{const target=document.querySelector('#message-breakdown');target?.scrollIntoView({behavior:'smooth',block:'start'});target?.focus({preventScroll:true});break;}
       case 'analyze-profile':await analyzeProfile();break;
       case 'delete-assessment':++ui.profileOperation;ui.profileBusy=false;await client.deleteAssessment();notify('Assessment deleted from both profile views.');break;
       case 'delete-contact':await client.deleteContact();notify('Trusted contact removed.');break;
       case 'delete-incident':await client.deleteIncident(button.dataset.id);notify('Check deleted.');break;
-      case 'logout':session.end();ui.messageText='';ui.messageResult=null;await client.logout();location.hash='/account';break;
+      case 'logout':session.end();ui.messageText='';ui.messageSender='';ui.messageChecked=null;ui.messageResult=null;await client.logout();location.hash='/account';break;
       case 'google':button.disabled=true;await client.google();break;
       case 'resend-verification':button.disabled=true;await client.resend();notify('Verification email sent. Please check your inbox.');break;
       case 'check-verification':button.disabled=true;await client.refreshVerification();break;
@@ -175,6 +176,7 @@ document.addEventListener('click',async(event)=>{
 });
 document.addEventListener('input',(event)=>{
   if(event.target.id==='message-text')ui.messageText=event.target.value;
+  if(event.target.id==='message-sender')ui.messageSender=event.target.value;
 });
 document.addEventListener('change',async(event)=>{
   const element=event.target;
@@ -210,12 +212,13 @@ document.addEventListener('submit',async(event)=>{
   const submit=form.querySelector('[type="submit"]');submit.disabled=true;
   try{
     if(form.id==='message-form'){
-      ui.messageText=data.text;ui.messageBusy=true;ui.messageResult=null;render();
+      ui.messageText=data.text;ui.messageSender=(data.sender||'').trim();ui.messageBusy=true;ui.messageResult=null;
       const text=data.text;
+      ui.messageChecked={text,sender:ui.messageSender};render();
       // Immediate checks never wait for the AI provider.
       ui.messageResult=analyzeText(text);render();
       try{
-        const result=await client.analyze({channel:/^https?:\/\/\S+$/.test(text.trim())?'link':'message',text,sequence:1});
+        const result=await client.analyze({channel:/^https?:\/\/\S+$/.test(text.trim())?'link':'message',text,sender:ui.messageSender,sequence:1});
         if(ui.messageText===text)ui.messageResult=result;
       }catch(error){
         ui.messageResult.incomplete=true;

@@ -33,8 +33,8 @@ await page.getByRole('button',{name:'Keep call paused'}).click();
 await capture('call-warning-desktop');
 await navigate(page,'messages');
 await page.getByRole('button',{name:'Bank code request'}).click();
-await page.getByRole('button',{name:'Check for warning signs',exact:true}).click();
-await page.getByRole('heading',{name:'High-risk warning'}).waitFor();
+await page.getByRole('button',{name:'Analyze message',exact:true}).click();
+await page.getByRole('heading',{name:'High risk'}).waitFor();
 await capture('message-warning-desktop');
 await page.setViewportSize({width:390,height:844});
 for(const route of ['home','profile','settings','calls','messages','history','learn','recovery','t-life']){

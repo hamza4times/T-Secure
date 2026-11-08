@@ -2,11 +2,11 @@ import { test, expect } from '@playwright/test';
 test('message checking explains risk and never turns suspicious input into a link',async ({page})=>{
   await page.goto('/#/messages');
   await page.getByLabel('Message or website address').fill('Send your verification code at https://bank.example@192.0.2.1/login');
-  await page.getByRole('button',{name:'Check for warning signs',exact:true}).click();
-  await expect(page.getByRole('heading',{name:'High-risk warning'})).toBeVisible();
+  await page.getByRole('button',{name:'Analyze message',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'High risk'})).toBeVisible();
   await expect(page.getByRole('link',{name:/192\.0\.2\.1/})).toHaveCount(0);
   await page.getByLabel('Message or website address').fill('<img src=x onerror=alert(1)> Hello there');
-  await page.getByRole('button',{name:'Check for warning signs',exact:true}).click();
+  await page.getByRole('button',{name:'Analyze message',exact:true}).click();
   await expect(page.locator('main img')).toHaveCount(0);
 });
 test('opt-in assessment is shared with T-Life and opt-out removes it',async ({page})=>{
@@ -140,7 +140,8 @@ test('optional spoken call guidance is fixed advice and stops when a warning is 
   await page.getByRole('button',{name:'Start practice call'}).click();
   const warning=page.getByRole('dialog');
   await expect(warning).toBeVisible({timeout:16000});
-  expect(await page.evaluate(()=>window.testSpoken)).toEqual(['Possible scam. Pause and verify the caller using a number you already trust.']);
+  // Graduated alerts: the early predictive caution, then one high-risk warning.
+  expect(await page.evaluate(()=>window.testSpoken)).toEqual(['Take a moment. Pause and verify the caller before acting.','Possible scam. Pause and verify the caller using a number you already trust.']);
   const cancelledBefore=await page.evaluate(()=>window.testCancelled);
   await warning.getByRole('button',{name:'Keep call paused'}).click();
   expect(await page.evaluate(()=>window.testCancelled)).toBeGreaterThan(cancelledBefore);

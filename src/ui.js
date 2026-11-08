@@ -35,7 +35,8 @@ export function date(value,withTime=false) {
   if(Number.isNaN(when.getTime()))return 'Date unavailable';
   return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',...(withTime?{hour:'numeric',minute:'2-digit'}:{})}).format(when);
 }
-export const riskLabels={low:'No clear warning signs',unknown:'More information needed',caution:'Pause and verify',high:'High-risk warning'};
+// One vocabulary for every risk display: calls, messages, history, and alerts.
+export const riskLabels={low:'Low risk',unknown:'More information needed',caution:'Elevated risk',high:'High risk'};
 export function badge(risk='low') {return `<span class="risk-badge ${h(risk)}">${icon(risk==='high'||risk==='caution'?'alert':risk==='unknown'?'info':'check')}${h(riskLabels[risk]||riskLabels.unknown)}</span>`;}
 export function highlight(text,reasons=[]) {
   const ranges=[];

@@ -65,7 +65,7 @@ export class CallSession {
     this.controller=new AbortController();
     try {
       const result=await this.analyze({
-        channel:'call',source:'simulation',sessionId:this.snapshot.sessionId,sequence,
+        channel:'call',source:'simulation',sessionId:this.snapshot.sessionId,sequence,sender:this.scenario.number,
         text:this.snapshot.turns.map((t)=>t.speaker + ': ' + t.text).join('\n'),
       },this.controller.signal);
       if (generation !== this.generation) return;

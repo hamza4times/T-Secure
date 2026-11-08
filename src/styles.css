@@ -600,3 +600,80 @@ label.switch-target{display:flex;align-items:center;justify-content:center;min-w
 .dialog-prediction span>.icon{width:15px;height:15px}
 .dialog-prediction strong{font-size:19px;line-height:1.45}
 @media(max-width:600px){.manipulation-timeline,.prediction-card{padding:18px}.timeline-step{padding-left:22px}}
+
+/* Message analysis and Scam Network Intelligence */
+#message-form label[for="message-sender"]{margin-top:18px}
+#message-form .field-help{margin:6px 0 18px}
+.optional-label{font-weight:500;color:var(--muted);font-size:13px;margin-left:6px}
+.call-number{display:block;font-size:13px;color:#d9c6d3;margin:2px 0 4px;letter-spacing:.02em}
+.assessment-eyebrow{display:block;margin-top:16px;font-size:13px;font-weight:750;text-transform:uppercase;letter-spacing:.02em;color:var(--muted)}
+.message-assessment h2{font-size:30px;margin:4px 0 10px}
+.message-assessment>p{font-size:17px;color:var(--ink)}
+.assessment-subhead{font-size:14px;margin-top:20px}
+.message-assessment .reason-list{margin-top:8px}
+.message-insights{margin-top:28px;display:flex;flex-direction:column;gap:24px}
+.insight-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,1fr);gap:24px;align-items:start}
+.insight-grid .manipulation-timeline{margin-top:0}
+.insight-side{display:flex;flex-direction:column;gap:20px}
+.breakdown-message{margin:20px 0 0;padding:16px 18px;border-left:3px solid var(--magenta);background:#fbf8fb;border-radius:0 10px 10px 0;font-size:17px;line-height:1.7;overflow-wrap:anywhere}
+.breakdown-message mark{background:#ffe7b8;color:inherit;border-radius:3px;padding:0 2px}
+.breakdown-empty{margin-top:18px;font-size:16px;color:var(--muted)}
+.message-actions h2{font-size:20px;margin-bottom:12px}
+.action-list{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.action-disclosure{flex:1 1 220px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.action-disclosure summary,.action-disclosure-button{display:flex;align-items:center;gap:9px;min-height:52px;padding:12px 16px;font-size:16px;font-weight:700;color:var(--ink);cursor:pointer;list-style:none}
+.action-disclosure summary::-webkit-details-marker{display:none}
+.action-disclosure summary>.icon,.action-disclosure-button>.icon{width:18px;height:18px;color:var(--magenta);flex:none}
+.action-disclosure[open]{flex-basis:100%;border-color:#e9c4d7}
+.action-disclosure[open] summary{border-bottom:1px solid var(--line)}
+.action-disclosure>div{padding:14px 18px 18px;font-size:16px;line-height:1.7;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.action-disclosure>div .icon{width:16px;height:16px;vertical-align:-2px;color:#3f7356}
+.action-disclosure-button{flex:1 1 220px;border:1px solid var(--line);border-radius:12px;background:#fff;text-align:left}
+.action-disclosure-button:hover,.action-disclosure summary:hover{background:#fcf6fa}
+.next-steps{padding-left:20px;margin:0}
+.next-steps li{margin:4px 0}
+.network-panel{padding:24px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.network-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.network-heading h2{font-size:22px;margin-top:6px}
+.network-empty{margin-top:14px;font-size:16px;color:var(--muted);line-height:1.7}
+.network-match{margin-top:16px;padding:16px;border-radius:12px;background:#fbf8fb;border:1px solid var(--line)}
+.network-match.moderate{background:#fffdf6;border-color:#eee1c3}
+.network-match.strong{background:#fcebf4;border-color:#e9c4d7}
+.network-match h3{font-size:17px;line-height:1.4}
+.network-match.strong .likelihood{background:var(--magenta);color:#fff}
+.network-match.moderate .likelihood{background:#ffedcc;color:#7a4f14}
+.network-match.strong .likelihood-meter i.on{background:var(--magenta)}
+.network-match>p{font-size:15px;color:var(--muted);line-height:1.6}
+.network-match h4{font-size:14px;margin:12px 0 4px}
+.network-shared{list-style:none;padding:0;margin:0}
+.network-shared li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 0;border-top:1px solid #e3d3dc80;font-size:15px}
+.network-shared span{text-align:right;color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.network-shared small{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.network-related{margin-top:10px}
+.network-related summary{display:flex;align-items:center;gap:6px;min-height:44px;font-size:15px;font-weight:700;color:var(--magenta-dark);cursor:pointer;list-style:none}
+.network-related summary::-webkit-details-marker{display:none}
+.network-related summary .icon{width:15px;height:15px}
+.network-related ul{list-style:none;padding:0;margin:4px 0 0}
+.network-related li{display:flex;flex-direction:column;padding:8px 0;border-top:1px solid #e3d3dc80;font-size:14px}
+.network-related li span{color:var(--muted)}
+.network-subhead{font-size:15px;margin-top:20px}
+.network-chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:700;color:#7b254c;background:#fcebf4;border-radius:5px;padding:5px 9px}
+.network-chip>.icon{width:13px;height:13px}
+@media(max-width:1020px){.insight-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.network-panel{padding:18px}.network-shared li{grid-template-columns:1fr}.network-shared span{text-align:left}}
+
+/* Shared risk presentation for calls and messages: larger, higher-contrast text */
+.analysis-panel h2{font-size:28px;margin:4px 0 10px}
+.analysis-panel>p{font-size:17px;color:var(--ink);line-height:1.7}
+.analysis-panel .assessment-eyebrow{margin-top:16px}
+.reason-list strong{font-size:15px}
+.reason-list blockquote{font-size:15px;color:#7a5a26}
+.analysis-source{font-size:13px;color:#776767}
+.small-chip,.call-person .small-chip{font-size:12px}
+.risk-badge{font-size:13px}
+.confidence{font-size:13px}
+.timeline-meta{font-size:14px}
+.likelihood{font-size:14px}
+.prediction-uncertainty{font-size:14px}
+.network-shared small{font-size:14px}
+.call-live-alert strong{display:block}
