@@ -11,6 +11,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --test tests/*.test.js",
     "test:e2e": "playwright test",
+    "test:pwa": "playwright test --config playwright.pwa.config.js",
     "test:rules": "node --test tests/rules/*.test.js",
     "test:auth": "playwright test --config playwright.auth.config.js",
     "test:a11y": "node scripts/audit-ui.mjs",

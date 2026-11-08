@@ -44,5 +44,6 @@ export function mergeAnalysis(...results) {
     if (seen.has(key)) return false;
     seen.add(key); return true;
   });
-  return {risk, reasons, actions: risk === 'low' ? ['verify'] : ['pause', 'verify', 'contact'], analysisSource: valid.some((r) => r.analysisSource === 'hybrid') ? 'hybrid' : 'rules-only'};
+  const latestEmotion=valid.findLast(result=>Object.hasOwn(result,'emotion'));
+  return {risk, reasons, actions: risk === 'low' ? ['verify'] : ['pause', 'verify', 'contact'], analysisSource: valid.some((r) => r.analysisSource === 'hybrid') ? 'hybrid' : 'rules-only', ...(latestEmotion?{emotion:latestEmotion.emotion}:{})};
 }

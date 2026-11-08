@@ -1,0 +1,131 @@
+HackUTD tone tests — Gemini and Nemotron results
+Source: Gemini's final visible responses captured in the browser tool readbacks in this chat.
+Response wording is reproduced verbatim; heading, bullet, and table layout is normalized to plain text. Pipe characters separate table columns. UI controls, hidden thinking, and Google's standard interface disclaimer are excluded.
+Test 3 below is the corrected all-happily-reference run, not the earlier mistaken-reference-label run.
+
+Test 1
+BEGIN GEMINI RESPONSE
+Overall Assessment
+The recording exhibits three distinct acoustic phases, transitioning abruptly from an energetic and bright vocal delivery to a quiet, subdued, and lower-pitched register, followed by a sudden shift into a loud, tense, and forceful delivery.
+
+Segment Summary Table
+Timestamp | Perceived Tone / Emotion | Acoustic Observations
+00:00 – 00:11 | Enthusiastic, upbeat | Moderately high pitch, wide pitch variability, brisk tempo, moderate-to-high loudness, bright resonance.
+00:11 – 00:22 | Melancholic, subdued | Lower pitch register, reduced loudness, slower pace, elongated pauses, softer/slightly breathy voice quality.
+00:22 – 00:35 | Agitated, indignant | Increased loudness, sharp dynamic accents, elevated pitch, tense voice quality, hurried pace with abrupt stops.
+
+Detailed Segment Analysis
+Segment 1 (00:00 – 00:11)
+Audible Observations: Pitch resides in a higher-than-average baseline with dynamic upward intonation contours. Loudness is elevated and sustained, paired with a brisk speaking rate and brief pauses. Vocal quality is clear and resonant.
+Perceived Interpretation: This combination of expanded pitch range, higher loudness, and rapid tempo gives an impression of cheerfulness, excitement, or enthusiasm.
+
+Segment 2 (00:11 – 00:22)
+Audible Observations: Begins with an audible drop in pitch and a marked decrease in volume. The rate of speech decelerates noticeably, accompanied by extended pauses between vocal bursts. The phonation shifts from resonant to slightly breathy and lax.
+Perceived Interpretation: The drop in energy, softened volume, and slower tempo sound reflective, somber, or wistful.
+
+Segment 3 (00:22 – 00:35)
+Audible Observations: Volume rises abruptly with sharp, punchy bursts of amplitude on specific syllables. Pitch jumps upward with sharp inflections. The vocal quality exhibits vocal fold tension and pressed phonation, and the pace accelerates with sharp, clipped phrasing.
+Perceived Interpretation: The vocal strain, high intensity, and rapid, staccato stress patterns suggest irritation, frustration, or indignation.
+END GEMINI RESPONSE
+
+Test 2
+BEGIN GEMINI RESPONSE
+Overall Assessment
+The recording exhibits three distinct acoustic segments distinguished by stark contrasts in pitch register, tempo, and vocal energy. The delivery shifts from an upbeat and dynamic style into a low, subdued, and measured cadence, before snapping back into a lively, resonant tone.
+
+Segmented Analysis
+Timestamp | Acoustic Observations (Pitch, Pace, Volume, Quality) | Perceived Tone / Mood
+00:00 – 00:09 | Pitch: Moderately high with wide, buoyant inflection contours. Pace: Moderate and fluid with short, natural pauses. Loudness: Clear, moderate projection. Voice Quality: Bright, clear, resonant. | Energetic, cheerful, engaged, and approachable.
+00:09 – 00:21 | Pitch: Noticeable drop to a low, restricted pitch range. Pace: Noticeably decelerated; deliberate phrasing with elongated pauses between clauses. Loudness: Lower amplitude/quieter. Voice Quality: Slightly breathy, subdued, and less resonant. | Somber, weary, contemplative, or subdued.
+00:21 – 00:32 | Pitch: Shifts abruptly back up to a higher, varied pitch range with animated contours. Pace: Brisk, rhythmic, and steady. Loudness: Louder, matching the initial segment. Voice Quality: Crisp, bright, and forward. | Brisk, positive, active, and upbeat.
+
+(Note: Perceptions of mood reflect acoustic styling rather than verified emotional states.)
+END GEMINI RESPONSE
+
+Test 3
+BEGIN GEMINI RESPONSE
+I acknowledge that the entire training reference recording is labeled "happily", defined by an upbeat, lively tempo, wide pitch variability, bright timbre, and cheerful, smiling vocal resonance. Because only positive examples of "happily" are supplied, the exact acoustic boundary for "other" must be inferred, introducing slight boundary uncertainty for standard matter-of-fact neutral speech versus overtly negative or low-arousal states.
+
+Chronological Classification of Target Recording
+Start | End | Bucket | Confidence | Acoustic Comparison to Reference
+00:00 | 00:10 | other | High | Delivery is matter-of-fact and neutral. Pitch inflection is restricted to standard declarative falls without the buoyant, upward lilt, animated dynamic range, or bright smiling vocal quality heard throughout the reference.
+00:10 | 00:21 | other | High | Pitch drops markedly lower into a somber, subdued register with a slower tempo, creaky vocal fry, and downward inflections, contrasting sharply with the energetic and cheerful reference delivery.
+00:21 | 00:31 | other | High | Delivery remains low-pitched, flat, and fatigued with heavy pauses, completely lacking the melodic variation, brisk pacing, and bright, engaging resonance of the reference.
+END GEMINI RESPONSE
+
+Test 4
+BEGIN GEMINI RESPONSE
+The requirement that at least one portion of the target recording must be classified as happy is an explicit, user-supplied constraint. Under purely objective acoustic matching, the target audio lacks the overt cheerful inflection of the reference; therefore, the segment selected below represents the closest relative acoustic match, and its confidence is rated as low to reflect this weak evidence rather than an inflated match. The entire reference recording continues to serve as the positive definition of the happy class.
+
+Chronological Classification of Target Recording
+Start | End | Bucket | Confidence | Acoustic Comparison to Reference
+00:00 | 00:10 | happy | Low | Selected under the user-supplied constraint as the best available match in the target. It shares a relatively brisk speaking rate, clear vocal projection, and modest pitch modulation on listed items ("a loaf of bread, a carton of milk..."). However, evidence is weak because it lacks the pronounced melodic lilt, wide dynamic pitch excursion, and bright, smiling vocal resonance present across the training reference.
+00:10 | 00:21 | other | High | Pitch drops into a significantly lower, flat register accompanied by vocal fry, a slower tempo, and subdued downward inflections, displaying strong acoustic contrast to the lively reference.
+00:21 | 00:31 | other | High | Tonality remains flat, quiet, and weary with protracted pauses and low pitch variability, diverging sharply from the bright, animated delivery of the reference.
+END GEMINI RESPONSE
+
+Test 5
+BEGIN GEMINI RESPONSE
+Confirmation of Reference Labels and Boundaries
+Reference Recording (human_audio_MoodID.m4a):
+0:00 – 0:25: Labeled as engaged + interested (characterized by animated delivery, dynamic pitch contours, higher pitch peaks, varied pacing, and an expressive, lively cadence).
+0:25 – end (~0:48): Labeled as neutral tone (characterized by flat intonation, restricted pitch variation, uniform pacing, and a matter-of-fact, calm, detached vocal quality).
+
+Target Tone Classification (human_audio_neutral_scrambled.m4a)
+Start | End | Label | Confidence | Explanation
+00:07 | 00:37 | engaged + interested | High | Dynamic pitch variation, bright vocal brightness, and lively, conversational cadence matching the reference's engaged section.
+00:38 | 01:03 | neutral tone | High | Flat, narrow pitch range with a steady, uniform pace and dispassionate delivery characteristic of the reference neutral segment.
+01:04 | 01:28 | neutral tone | High | Monotone delivery with very low vocal inflection, matter-of-fact rhythm, and lack of dynamic pitch movement.
+01:29 | 01:55 | engaged + interested | High | Expressive upward pitch inflections, animated intonation, and upbeat tempo closely aligning with the engaged reference.
+01:56 | 02:21 | neutral tone | High | Steady, low-energy reporting tone with flat sentence endings and minimal pitch modulation.
+02:22 | 02:47 | engaged + interested | High | Vocal variety featuring rising/falling contours, melodic emphasis on key words, and energetic phrasing.
+02:48 | 03:15 | engaged + interested | High | Animated storytelling cadence, lively vocal energy, and wide pitch excursions reflecting curiosity and interest.
+03:16 | 03:39 | neutral tone | High | Restrained, flat vocal delivery with even spacing and absence of pitch peaks, matching the neutral baseline.
+03:40 | 04:06 | engaged + interested | High | Expressive, buoyant delivery with noticeable pitch range shifts and warm, engaged resonance.
+04:08 | 04:32 | neutral tone | High | Level, calm, uninflected voice quality with methodical cadence and flat prosody.
+END GEMINI RESPONSE
+
+
+Test 6
+BEGIN GEMINI RESPONSE
+Here is the chronological analysis of the vocal delivery and tonality throughout the recording:
+
+Start Time | End Time | Classification | Confidence | Vocal Delivery Analysis
+00:00 | 00:37 | engaged + interested | High | Dynamic pitch variation, bright vocal resonance, lively pacing, and expressive intonation contours.
+00:37 | 01:28 | neutral tone | High | Noticeable drop in energy; flat, uninflected pitch, steady and measured cadence, and detached, monotone presentation.
+01:28 | 01:56 | engaged + interested | High | Pitch inflection becomes animated again with upbeat tempo, lilting rhythm, and conversational engagement.
+01:56 | 02:22 | neutral tone | High | Monotonous, uniform pitch contour with flat stress patterns and a calm, matter-of-fact delivery.
+02:22 | 03:15 | engaged + interested | High | Energetic vocal modulation, pronounced pitch shifts, lively emphasis on keywords, and expressive pacing.
+03:15 | 03:39 | neutral tone | High | Flat, dry tonality with minimal pitch movement, consistent volume, and mechanical, even pacing.
+03:39 | 04:07 | engaged + interested | High | Re-emergence of lively inflection, animated vocal range, and dynamic cadence conveying curiosity and engagement.
+04:07 | 04:33 | neutral tone | High | Even tempo, low melodic variance, restrained dynamics, and a neutral, uninflected reading style.
+END GEMINI RESPONSE
+
+Nemotron — Test 6
+Time | Label | Confidence | Run
+00:00.00-00:07.50 | neutral tone | high | Original
+00:07.50-00:15.00 | engaged + interested | medium | Original
+00:15.00-00:25.00 | neutral tone | high | Original
+00:25.00-00:35.00 | engaged + interested | medium | Original
+00:35.00-00:45.00 | neutral tone | high | Original
+00:45.00-00:55.00 | engaged + interested | medium | Original
+00:55.00-01:05.00 | neutral tone | high | Original
+01:05.00-01:15.00 | engaged + interested | medium | Original
+01:15.00-01:25.00 | neutral tone | high | Original
+01:25.00-01:35.00 | engaged + interested | medium | Original
+01:35.00-01:45.00 | neutral tone | high | Original
+01:45.00-01:55.00 | engaged + interested | medium | Original
+01:55.00-02:05.00 | neutral tone | high | Original
+02:05.00-02:15.00 | engaged + interested | medium | Original
+02:15.00-02:25.00 | neutral tone | high | Original
+2:25-2:40 | engaged + interested | high | Clip
+2:40-2:55 | engaged + interested | high | Clip
+2:55-3:10 | engaged + interested | high | Clip
+3:10-3:25 | engaged + interested | high | Clip
+3:25-3:40 | engaged + interested | high | Clip
+3:40-3:55 | engaged + interested | high | Clip
+3:55-4:10 | engaged + interested | high | Clip
+4:10-4:25 | engaged + interested | high | Clip
+4:25-4:33 | engaged + interested | high | Clip
+
+Comparison: 156.5 / 273 seconds = 57.3% agreement with Gemini Test 6

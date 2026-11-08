@@ -1,6 +1,7 @@
 import { createServer, loadEnv } from 'vite';
 Object.assign(process.env,loadEnv('development',process.cwd(),''));
 const routes={
+  '/api/call':'../api/call.js',
   '/api/analyze':'../api/analyze.js',
   '/api/profile':'../api/profile.js',
   '/api/profile/analyze':'../api/profile/analyze.js',

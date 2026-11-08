@@ -5,6 +5,7 @@ import { analyzeText, mergeAnalysis } from '../shared/detection.js';
 import { calculateAssessment, validateOpportunities, CONSENT_VERSION } from '../shared/scoring.js';
 import { getHistory, historySets } from '../shared/fixtures.js';
 import { modelName as configuredModel } from './model-config.js';
+import {unknownEmotion} from '../shared/emotion.js';
 
 export function createService({store, model, modelName = configuredModel}) {
   return {
@@ -19,9 +20,10 @@ export function createService({store, model, modelName = configuredModel}) {
       }
       const sessionId = input.sessionId || randomUUID();
       let result = analyzeText(input.text);
+      if(input.channel==='call')result.emotion=unknownEmotion();
       let incomplete = false;
       try {
-        const ai = validateModelAnalysis(await model('communication', {text:input.text,channel:input.channel}), input.text);
+        const ai = validateModelAnalysis(await model('communication', {text:input.text,channel:input.channel,...(input.channel==='call'?{turns:input.turns}:{})}), input.text, input.channel==='call'?input.turns:undefined);
         result = mergeAnalysis(result, {...ai, analysisSource:'hybrid'});
       } catch { incomplete = true; if (result.risk === 'low') result.risk = 'unknown'; }
       if (previous?.risk) result = mergeAnalysis(result, {risk:previous.risk,reasons:[]});

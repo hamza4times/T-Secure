@@ -1,6 +1,6 @@
 # T-Secure
 
-A Vite + vanilla JavaScript app for senior scam protection. Includes progressive call simulations, message/link checks, a trusted contact, recovery guidance, opt-in sample-history assessments, and a T-Life concept profile.
+A Vite + vanilla JavaScript app for senior scam protection. Includes live audio monitoring, an interactive voiced practice caller, message/link checks, a trusted contact, recovery guidance, opt-in sample-history assessments, and a T-Life concept profile.
 
 ## Run locally
 
@@ -10,6 +10,23 @@ Requires Node.js 22.12+ (tested with Node 24).
     npm run dev
 
 Open http://localhost:5173. With Firebase configured, this opens sign-in; “Explore the local demo” remains available. Without Firebase configuration, the app opens the labeled demo directly. Demo preferences, contacts, derived assessments, and check summaries stay in this browser. Raw pasted messages and call transcripts are never written to browser storage.
+
+## Install on a phone (PWA)
+
+Production URL: https://t-secure-pi.vercel.app. Deploy this checkout to the existing Vercel project to enable the PWA there; no new domain or app-store release is required.
+
+- **Android:** open the site in Chrome, then use its menu → **Install app** (or **Add to Home screen**).
+- **iPhone/iPad:** open the site in Safari, then Share → **Add to Home Screen**. Enable **Open as Web App** if offered.
+
+The installed app opens in its own window with the T-Secure shield icon. Manifest URLs are relative to the current origin, so preview deployments remain separate from the production installation.
+
+**Automatic updates:** every production build generates `/sw.js` with a revision calculated from the actual application files. The app checks for updates on opening, returning to the foreground, reconnecting, and once per minute while visible. New files download automatically. The update activates and reloads when every open app tab is idle; active or paused calls, ongoing actions, focused inputs, and unsaved forms defer it. Save the form or leave it, or end the call, to allow the update. Reinstallation is unnecessary. Browsers control checks while an app is closed or suspended; this does not promise continuous background updates.
+
+**Offline:** after a successful online visit and completed cache installation, the app shell, fonts, safety/recovery guides, and local demo message checks can reopen offline. Use **Explore the local demo** if account data cannot load. Sign-in, private account sync, live audio/transcription, and AI analysis need internet. An offline notice explains these limits. The service worker caches only the public build files; it never caches API responses, Firebase/provider traffic, raw messages, audio, or transcripts.
+
+`vercel.json` prevents stale HTML, manifests, and service-worker scripts. Keep `/sw.js` at the origin root and keep these headers when changing deployment configuration. PWA registration is production-only so it cannot cache the Vite development server.
+
+Verify with `npm run test:pwa`: this builds two production releases and tests installation eligibility, icons, offline reopening, private API cache exclusions, automatic upgrades, multi-tab draft protection, and active/paused call protection in desktop and mobile Chrome. `npm run build` includes PWA assets automatically. The committed PNG icons are derived from the existing favicon; regenerate them with `node scripts/generate-pwa-icons.mjs` when branding changes (requires local Chrome).
 
 ## Connect Firebase and OpenRouter
 
@@ -25,6 +42,18 @@ Open http://localhost:5173. With Firebase configured, this opens sign-in; “Exp
 7. The supplied OpenRouter key is configured locally as OPENROUTER_API_KEY. OPENROUTER_MODEL defaults to the requested nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free. The key is required even for free models. Requests use https://openrouter.ai/api/v1/chat/completions; no alternate model or paid fallback is configured.
 8. Restart the dev server.
 
+### Live audio and ElevenLabs
+
+The supplied ElevenLabs key is saved in the ignored `.env` as `ELEVENLABS_API_KEY` (server only). Optional `ELEVENLABS_VOICE_ID` defaults to `JBFqnCBsd6RMkjVDRZzb`; `ELEVENLABS_TTS_MODEL` defaults to `eleven_flash_v2_5`. The key needs text-to-speech and realtime speech-to-text/token permissions and sufficient credits.
+
+Open **Call protection**, choose an audio source, and press Start. Allow microphone access. **Interactive AI practice caller** generates short Nemotron replies and streams ElevenLabs PCM speech; reply aloud in your own words. **Live microphone monitoring** checks speech or speaker audio near your microphone without generating a caller. Headphones are recommended for practice. HTTPS or localhost is required. Browser permissions and provider access are required; failures are shown explicitly.
+
+Actual 16 kHz audio goes through ElevenLabs Scribe realtime transcription using single-use tokens. The caller's playback and microphone use separate transcription streams so caller dialogue is never substituted for recognized audio. Completed transcripts are split into batches of at most two sentences and queued for Nemotron through OpenRouter, at least three seconds between requests and only one request in flight. Two complete partial sentences request an early transcript commit; shorter utterances commit after a voice-activity silence boundary. Latency includes speech segmentation, queued inference, and provider response time; this is not a hard realtime guarantee.
+
+Localhost guests can use live providers. Production requires verified Firebase authentication, or the explicit server setting `LIVE_DEMO_ENABLED=true` to allow guests. Production guests use shared Firestore rate limits by a hashed network address. Set the ElevenLabs key, existing OpenRouter/Firebase secrets, and optional guest setting in Vercel separately; `.env` is not deployed automatically. Provider credentials never enter the browser bundle. Single-use transcription tokens expire and cannot be reused.
+
+T-Secure keeps audio and raw transcripts in session memory and saves only derived check summaries. Audio is sent to ElevenLabs, and transcripts are sent to OpenRouter; their retention policies apply. Ending a call, navigating away, or losing transcription stops capture and playback. Pausing suspends audio processing and disables the microphone track; it does not hang up a real phone call. Call protection does not intercept a telephone line.
+
 Only VITE_ variables enter the browser bundle. Never give server credentials that prefix. Environment files are ignored by Git. Keep provider keys and service-account JSON out of source control.
 
 The connected app requires a verified Firebase email before private data or analysis is available. Firebase's hosted email handler completes verification; return and choose “I've verified my email.” Google uses Firebase popup sign-in.
@@ -35,7 +64,7 @@ Local live-service checks confirmed authenticated profile loading, consent, Nemo
 
 ## Demonstration modes
 
-- Calls: fictional text conversations; no microphone, call interception, inbox access, or automatic blocking.
+- Calls: real microphone capture and Nemotron inference; optional fictional, interactive AI caller with ElevenLabs speech. No call interception, inbox access, or automatic blocking.
 - Local messages: browser rules, labeled as such. Links are never opened or fetched.
 - Local advanced analysis: annotated synthetic evidence, explicitly labeled demo-fixture.
 - Connected analysis: authenticated server-side OpenRouter Nemotron inference plus independent rule checks.
@@ -45,11 +74,17 @@ The sample histories demonstrate 83/100 observed risky responses, 0/100, and ins
 
 ## In-call alerts
 
-Call practice includes prevention guidance, real-time risk labels with highlighted transcript evidence, and recovery links after the call. A grounded caution warning shows a banner without interrupting. The first grounded high-risk warning pauses the simulation and opens a keyboard-accessible dialog with the evidence, independent-verification guidance, a trusted-contact action, and controls to end or continue the demo. Escape keeps the call paused. Reviewing the alert never clears the warning.
+Call protection includes prevention guidance, real-time risk labels with highlighted transcript evidence, and recovery links after the call. A grounded caution warning shows a banner without interrupting. The first grounded high-risk warning pauses monitoring and practice playback and opens a keyboard-accessible dialog with the evidence, independent-verification guidance, a trusted-contact action, and controls to end or continue the demo. Escape keeps audio paused. Reviewing the alert never clears the warning.
 
 Each call announces at most one caution and one high-risk escalation. Repeated tactics can update the evidence without replaying audio or reopening the dialog. Incomplete analysis is identified separately and does not itself trigger a scam alert. Starting a new call resets this alert budget.
 
 “Call alert audio” defaults to visual-only alerts. Users can opt into a gentle device tone or fixed spoken guidance; that preference stays in this browser. No caller content or model-generated instructions are spoken. Audio stops when the warning is reviewed or the call ends. Visual alerts remain available when the browser cannot play audio. This does not inject sound into a real phone call or implement private/binaural carrier audio.
+
+### Emotion-aware check-ins
+
+The same free OpenRouter Nemotron request can extract a possible expressed emotion from the latest explicitly attributed user turn: sadness, fear, anxiety, loneliness, overwhelm, excitement, or neutral. The API validates the turn ID and exact evidence. Caller speech, unattributed mixed audio, missing evidence, unsupported labels, and failed analysis produce “not enough information.” New user speech clears the old cue while its analysis is pending. These are uncertain wording cues, not acoustic emotion detection, diagnoses, or predictions of susceptibility.
+
+An emotional cue with an unknown/unverified caller, or a grounded caution/high-risk call, displays a supportive check-in and a pause-to-verify action. For example: “You may be feeling sad. Is everything okay?” It announces at most once per call, uses fixed application wording with the existing optional tone/spoken-guidance setting, and never raises scam risk by itself. Caller verification is selected manually before the call; a saved name or familiar voice is not sufficient. Risk warnings still apply to verified callers. Current mixed microphone monitoring does not identify the user's voice, so personal emotion cues are available in practice calls with separate user/caller streams. Emotion cues and excerpts are transient and are never saved to incident history or the vulnerability assessment.
 
 ## Architecture
 
@@ -61,10 +96,11 @@ Each call announces at most one caution and one high-risk escalation. Repeated t
 
 ### API
 
-All routes require Authorization: Bearer <Firebase ID token> for a verified user. Responses are not cached.
+Profile routes and `/api/analyze` require `Authorization: Bearer <Firebase ID token>` for a verified user. `/api/call` follows the live-audio identity/guest policy above. Responses are not cached.
 
 | Route | Behavior |
 | --- | --- |
+| POST /api/call | Live call actions: single-use transcription token, Nemotron caller reply, streaming PCM speech, and grounded live analysis. Local guests supported; production identity/guest policy described above. |
 | POST /api/analyze | Accepts channel, text, sequence, optional sessionId and source; returns grounded reasons and a server session ID. |
 | POST /api/profile/consent | Stores enabled, allowlisted historySetId, consent version/time, and an incremented revision; removes the previous assessment. |
 | POST /api/profile/analyze | Loads sample history, extracts evidence, computes the score, and commits only if consent still matches. |
@@ -124,6 +160,16 @@ Firebase Admin 14.5.0 brings jwks-rsa 4.1.0, whose synchronous CommonJS imports 
 
 The runtime regression in npm test disables synchronous require(ESM), boots every API handler, checks unauthenticated rejection, and validates real RSA signing-key conversion and tampered-signature rejection. API response tests also cover platform text/HTML errors and malformed successful responses; users receive a readable service error instead of a JSON parser exception.
 
+## Recorded tests
+
+Open **Recorded tests** in the navigation to explore six supplied tone-analysis
+experiments. Play the original target/reference recordings, jump to timestamps,
+compare saved classifications, and expand the scripts, prompts, and source files.
+The examples use bundled recordings and saved results without calling an analysis
+provider. Audio loads on demand and needs a connection to the app server.
+See [recorded-test notes](docs/recorded-tests.md) for source mapping, experiment
+conditions, and validation coverage.
+
 ## Deploy to Vercel
 
 1. Sign in to Vercel CLI or import the repository in its dashboard.
@@ -139,6 +185,9 @@ Without configuration, deployment exposes only the labeled local demo. Real T-Li
 - [Firebase authentication](https://firebase.google.com/docs/auth/web/start)
 - [OpenRouter model](https://openrouter.ai/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free)
 - [OpenRouter API](https://openrouter.ai/docs/api/reference/overview)
+- [ElevenLabs realtime transcription](https://elevenlabs.io/docs/api-reference/speech-to-text/v-1-speech-to-text-realtime)
+- [ElevenLabs single-use tokens](https://elevenlabs.io/docs/api-reference/tokens/create)
+- [ElevenLabs streaming speech](https://elevenlabs.io/docs/api-reference/text-to-speech/stream)
 - [FTC recovery guidance](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)
 - [Vishing survey](https://doi.org/10.1016/j.csl.2025.101802)
 - [NIST measurement guidance](https://airc.nist.gov/airmf-resources/playbook/measure/)

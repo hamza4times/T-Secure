@@ -1,3 +1,4 @@
+import {supportiveGuidance} from '../shared/emotion.js';
 const GUIDANCE={
   caution:'Take a moment. Pause and verify the caller before acting.',
   high:'Possible scam. Pause and verify the caller using a number you already trust.',
@@ -25,15 +26,16 @@ export class CallAudio {
       return true;
     }catch{this.onUnavailable();return false;}
   }
-  async play(risk) {
-    if(this.mode==='visual'||!GUIDANCE[risk])return;
+  async play(risk,emotion) {
+    const guidance=risk==='emotion'?supportiveGuidance(emotion):GUIDANCE[risk];
+    if(this.mode==='visual'||!guidance)return;
     this.stop();
     const generation=this.generation;
     if(!await this.prepare())return;
     if(generation!==this.generation)return;
     try {
       if(this.mode==='speech'){
-        const utterance=new this.scope.SpeechSynthesisUtterance(GUIDANCE[risk]);
+        const utterance=new this.scope.SpeechSynthesisUtterance(guidance);
         utterance.lang='en-US';utterance.rate=.9;utterance.volume=.55;
         utterance.onend=()=>{if(generation===this.generation)this.speaking=false;};
         utterance.onerror=()=>{if(generation===this.generation){this.speaking=false;this.onUnavailable();}};

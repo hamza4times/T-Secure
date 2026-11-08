@@ -196,14 +196,34 @@ export class Client {
     this.state.assessment=null;this.persist();this.emit();
   }
   async analyze(input,signal) {
+    if(input.source==='live-audio'&&!this.state.demo)return this.callApi({action:'analyze',...input},signal);
     if(!this.state.demo)return this.api('/api/analyze',input,'POST',signal);
     if(signal?.aborted)throw new DOMException('Aborted','AbortError');
-    const result={...analyzeText(input.text),sessionId:input.sessionId||crypto.randomUUID(),sequence:input.sequence,local:true};
+    const result=input.source==='live-audio'?await this.callApi({action:'analyze',...input},signal):{...analyzeText(input.text),sessionId:input.sessionId||crypto.randomUUID(),sequence:input.sequence,local:true};
     const previous=this.state.incidents.find((i)=>i.id===result.sessionId);
     const incident={id:result.sessionId,channel:input.channel,source:input.source||'user',risk:result.risk,reasonCodes:[...new Set(result.reasons.map((r)=>r.code))],updatedAt:new Date().toISOString(),recovery:previous?.recovery||[]};
     if(previous?.risk==='high')incident.risk='high';
     this.state.incidents=[incident,...this.state.incidents.filter((i)=>i.id!==incident.id)].slice(0,50);
     this.persist();return result;
+  }
+  async callApi(body,signal,audio=false) {
+    const headers={'Content-Type':'application/json'};
+    if(!this.state.demo){
+      const user=this.auth?.currentUser;
+      if(!user?.emailVerified)throw new Error('Sign in with a verified email to use live audio.');
+      headers.Authorization='Bearer '+await user.getIdToken();
+    }
+    const response=await fetch('/api/call',{method:'POST',headers,body:JSON.stringify(body),signal:signal||AbortSignal.timeout(30000)});
+    if(response.ok&&audio){
+      if(!response.headers.get('Content-Type')?.startsWith('audio/pcm'))throw new Error('The caller returned invalid audio. Please try again.');
+      return response;
+    }
+    let result;try{result=await response.json();}catch{/* Gateways may return HTML. */}
+    if(!response.ok||!result||typeof result!=='object'||Array.isArray(result)){
+      const retry=Number(response.headers.get('Retry-After')||30);
+      throw Object.assign(new Error(typeof result?.error==='string'&&result.error.length<500?result.error:'Live audio is unavailable. Check your connection and start again.'),{status:response.ok?502:response.status,retryAfterMs:Number.isFinite(retry)?Math.max(30000,retry*1000):30000});
+    }
+    return result;
   }
   async saveContact(contact) {
     if(!contact.name.trim() || contact.name.length>80 || contact.relationship.length>60 || !/^[+0-9() .-]{7,30}$/.test(contact.phone))throw new Error('Enter a contact name and a valid phone number.');

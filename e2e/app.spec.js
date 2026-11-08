@@ -1,4 +1,7 @@
 import { test, expect } from '@playwright/test';
+import {callFixture} from './call-fixture.js';
+const callProviders=new WeakMap();
+test.beforeEach(async({page})=>{callProviders.set(page,await callFixture(page));});
 test('message checking explains risk and never turns suspicious input into a link',async ({page})=>{
   await page.goto('/#/messages');
   await page.getByLabel('Message or website address').fill('Send your verification code at https://bank.example@192.0.2.1/login');
@@ -49,10 +52,13 @@ test('practice call can pause, resume, warn, and end',async ({page})=>{
   await page.goto('/#/calls');
   await page.getByLabel('Practice scenario').selectOption('support');
   await page.getByRole('button',{name:'Start practice call'}).click();
+  await expect(page.getByRole('button',{name:'Pause call',exact:true})).toBeVisible();
+  callProviders.get(page).say('We have detected a problem on your computer.');
   await expect(page.getByText('We have detected a problem on your computer.',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Pause call'}).click();
   await expect(page.getByText('Paused',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'Resume call'}).click();
+  callProviders.get(page).say('Download AnyDesk and enable remote access so I can fix it.');
   const warning=page.getByRole('dialog',{name:'Pause and verify this caller.'});
   await expect(warning).toBeVisible({timeout:16000});
   await warning.getByRole('button',{name:'End demo call'}).click();
@@ -68,6 +74,7 @@ test('navigation fits a narrow viewport and controls remain keyboard reachable',
 test('leaving a practice call ends it and returning allows a new practice',async({page})=>{
   await page.goto('/#/calls');
   await page.getByRole('button',{name:'Start practice call'}).click();
+  await expect(page.getByRole('button',{name:'Pause call',exact:true})).toBeVisible();
   const menu=page.getByRole('button',{name:'Menu',exact:true});
   if(await menu.isVisible())await menu.click();
   await page.getByRole('link',{name:'Safety guide',exact:true}).click();
@@ -109,6 +116,8 @@ test('high-risk call alert pauses the demo, supports keyboard review, and avoids
   await expect(page.getByLabel('Call alert audio')).toHaveValue('visual');
   await page.getByLabel('Practice scenario').selectOption('support');
   await page.getByRole('button',{name:'Start practice call'}).click();
+  await expect(page.getByRole('button',{name:'Pause call',exact:true})).toBeVisible();
+  callProviders.get(page).say('Download AnyDesk and enable remote access so I can fix it.');
   const warning=page.getByRole('dialog',{name:'Pause and verify this caller.'});
   await expect(warning).toBeVisible({timeout:16000});
   await expect(warning.getByText('Download AnyDesk and enable remote access',{exact:false})).toBeVisible();
@@ -117,8 +126,9 @@ test('high-risk call alert pauses the demo, supports keyboard review, and avoids
   await expect(warning).not.toBeVisible();
   await expect(page.getByRole('button',{name:'Resume call'})).toBeFocused();
   await page.getByRole('button',{name:'Resume call'}).click();
-  const transcript=page.getByRole('log',{name:'Sample conversation transcript'});
+  const transcript=page.getByRole('log',{name:'Live conversation transcript'});
   await transcript.focus();
+  callProviders.get(page).say('Then send your password so I can finish the repair.');
   await expect(page.getByText('Then send your password so I can finish the repair.',{exact:false})).toBeVisible({timeout:8000});
   await expect(transcript).toBeFocused();
   await expect(warning).not.toBeVisible();
@@ -138,6 +148,8 @@ test('optional spoken call guidance is fixed advice and stops when a warning is 
   await page.getByLabel('Call alert audio').selectOption('speech');
   await page.getByLabel('Practice scenario').selectOption('support');
   await page.getByRole('button',{name:'Start practice call'}).click();
+  await expect(page.getByRole('button',{name:'Pause call',exact:true})).toBeVisible();
+  callProviders.get(page).say('Send your password now.');
   const warning=page.getByRole('dialog');
   await expect(warning).toBeVisible({timeout:16000});
   expect(await page.evaluate(()=>window.testSpoken)).toEqual(['Possible scam. Pause and verify the caller using a number you already trust.']);
@@ -151,7 +163,9 @@ test('caution alerts preserve keyboard focus and let the call continue',async({p
   await page.getByLabel('Practice scenario').selectOption('government');
   await page.getByRole('button',{name:'Start practice call'}).click();
   const pause=page.getByRole('button',{name:'Pause call',exact:true});
+  await expect(pause).toBeVisible();
   await pause.focus();
+  callProviders.get(page).say('Your account will be locked within five minutes.');
   await expect(page.getByRole('region',{name:'Current call warning'})).toBeVisible({timeout:8000});
   await expect(page.getByRole('dialog')).not.toBeVisible();
   await expect(pause).toBeFocused();
@@ -163,6 +177,8 @@ test('high-risk actions stay in view at a zoom-equivalent viewport',async({page}
   await page.goto('/#/calls');
   await page.getByLabel('Practice scenario').selectOption('support');
   await page.getByRole('button',{name:'Start practice call'}).click();
+  await expect(page.getByRole('button',{name:'Pause call',exact:true})).toBeVisible();
+  callProviders.get(page).say('Send your password now.');
   const warning=page.getByRole('dialog');
   await expect(warning).toBeVisible({timeout:16000});
   await expect(warning.getByRole('button',{name:'End demo call'})).toBeInViewport();

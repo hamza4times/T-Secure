@@ -1,0 +1,72 @@
+HackUTD tone tests — labeled scripts
+Source: HackUTD Notes, Project 1 [T-Secure], https://docs.google.com/document/d/1dtRKEimH3DaTvF4cuToi3gWvKowbbabvqstleqFDkfI
+These are the written scripts and intended tone labels, not transcripts inferred from audio.
+
+Test 1 — Original generated audio
+[happily] Today started so well! The sun was shining, my favorite song came on, and I finally finished a project I’d been working on all week. I felt like celebrating every little thing.
+
+[sad] But later, I found an old photo of a friend I haven’t spoken to in years. I missed our conversations and the way we could make each other laugh. The afternoon suddenly felt a little lonelier.
+
+[angry] Then I discovered someone had deleted my project without asking! All that effort, gone. I checked twice because I couldn’t believe it. How could anyone be so careless with something I worked so hard on?
+
+Test 2 — gen_audio_neutral_scrambled.mp3
+[happily] This morning, I walked to the store on the corner. I picked up a loaf of bread, a carton of milk, and some rice. At the checkout, I put everything in a bag and walked home.
+
+[sad] Around noon, I sat at the kitchen table. I opened my notebook and wrote down three things to do. Then I checked the time, put the notebook on the shelf, and filled a glass with water.
+
+[angry] In the evening, I moved a chair beside the window. I plugged in my phone and set an alarm for seven. Then I folded a shirt, put it in the drawer, and turned off the light.
+
+Test 3 — MoodID reference + target
+Reference: gen_audio_MoodID training.mp3; all of this reference is labeled happily.
+[happily] This morning, I got up at seven and went into the kitchen. I filled the kettle, took a cup from the cupboard, and put two slices of bread on a plate. While the water heated, I checked the calendar on my phone.
+
+[happily] After breakfast, I put on my shoes and walked to the bus stop. There were four people waiting. The bus arrived a few minutes later, and I sat near the middle. Along the way, we passed a grocery store, two schools, and a row of apartment buildings.
+
+[happily] When I got back home, I placed my keys on the table and sorted the mail. There were two envelopes and a folded leaflet. I put them beside my notebook, changed into another shirt, and started preparing rice and vegetables for dinner.
+
+Target: gen_audio_neutral_scrambled.mp3
+[happily] This morning, I walked to the store on the corner. I picked up a loaf of bread, a carton of milk, and some rice. At the checkout, I put everything in a bag and walked home.
+
+[sad] Around noon, I sat at the kitchen table. I opened my notebook and wrote down three things to do. Then I checked the time, put the notebook on the shelf, and filled a glass with water.
+
+[angry] In the evening, I moved a chair beside the window. I plugged in my phone and set an alarm for seven. Then I folded a shirt, put it in the drawer, and turned off the light.
+
+Test 4 — Same reference and target as Test 3
+Reference script and all-happily labels: exactly as Test 3 above.
+Target script and intended labels: exactly as Test 2 above.
+
+Test 5 — Human reference + target
+Reference: human_audio_MoodID.m4a
+User-supplied reference labels: 0:00–0:25 engaged + interested; 0:25–end neutral tone.
+Reference script: user confirmed that the first two paragraphs of the human script were used:
+[excited] [engaged] [interested] This morning, I took a notebook to the kitchen table and drew a plan of the apartment. I started with the doorway, then added the windows and the position of each piece of furniture. Using a ruler, I measured the lines and wrote the numbers beside them. I turned the page sideways to fit the hallway and marked where it connected to the other rooms.
+
+[neutral] [matter-of-fact] After breakfast, I collected the towels from the bathroom and carried them to the washing machine. I separated them into two piles according to the washing instructions on their labels. Then I measured the detergent, selected the cycle, and closed the door. While the machine ran, I put the remaining towels on a shelf and placed the empty basket beside the wall near the doorway.
+
+Target: human_audio_neutral_scrambled.m4a
+[excited] [engaged] [interested] This morning, I took a notebook to the kitchen table and drew a plan of the apartment. I started with the doorway, then added the windows and the position of each piece of furniture. Using a ruler, I measured the lines and wrote the numbers beside them. I turned the page sideways to fit the hallway and marked where it connected to the other rooms.
+
+[neutral] [matter-of-fact] After breakfast, I collected the towels from the bathroom and carried them to the washing machine. I separated them into two piles according to the washing instructions on their labels. Then I measured the detergent, selected the cycle, and closed the door. While the machine ran, I put the remaining towels on a shelf and placed the empty basket beside the wall near the doorway.
+
+[neutral] [matter-of-fact] At ten o’clock, I opened a folder containing the documents from last month. I arranged them by date and checked the names printed at the top of each page. Three documents had two pages, so I attached those pages with paper clips. I returned everything to the folder, wrote the month on the label, and placed it in the second drawer of the filing cabinet.
+
+[excited] [engaged] [interested] Later, I looked at the timetable for the buses that stop near the library. One route goes through the town center, while another follows the road beside the river. I compared their departure times and counted the stops along each route. Then I checked the walking distance from the final stop to the building and wrote both sets of directions on a page in my notebook.
+
+[neutral] [matter-of-fact] Around noon, I prepared a sandwich and poured a glass of water. I put the plate on the table and moved the notebook to the other side. After eating, I washed the plate, dried it with a cloth, and returned it to the cupboard. I wiped the counter, folded the cloth, and checked the time before putting on my shoes to go to the store.
+
+[excited] [engaged] [interested] At the store, I compared the information printed on three bags of rice. Each bag listed its weight, cooking time, and the amount of water needed for each serving. I calculated how many servings each bag contained and checked the prices on the shelf. Then I looked at the package dimensions and considered where each one would fit in the kitchen cupboard beside the flour.
+
+[excited] [engaged] [interested] On the way home, I stopped beside a noticeboard near the community center. It displayed a calendar with activities arranged in columns for each day of the week. Some sessions lasted thirty minutes, and others lasted an hour. I checked which rooms were listed for the afternoon sessions, then compared the starting times with the opening hours printed on a separate notice beside the calendar.
+
+[neutral] [matter-of-fact] When I arrived home, I placed the shopping bag on the counter and took out the contents. I put the rice in the cupboard and the vegetables in the refrigerator. Then I folded the bag and stored it with the others under the sink. I took off my shoes, placed them beside the door, and hung my jacket on the hook above the shoe rack.
+
+[excited] [engaged] [interested] In the afternoon, I filled three containers with water and set them on the table. The containers had different shapes, but each held the same amount. I measured the height of the water in each one and recorded the results. Then I poured the water into a measuring jug, one container at a time, to compare the volume with the markings along the side of the jug.
+
+[neutral] [matter-of-fact] Before dinner, I returned the containers to the cupboard and dried the table. I opened my notebook to the page with tomorrow’s schedule and added the time of a delivery. Then I plugged my phone into its charger and set an alarm for the morning. I closed the notebook, placed a pen across the cover, and went into the kitchen to prepare the evening meal.
+
+Test 6 — Human target without reference
+Target: human_audio_neutral_scrambled.m4a
+Same target script and intended tone labels as Test 5 above; no reference uploaded.
+
+Additional audio: gen_audio_scrambled.mp3 is included in the archive but was not uploaded in any of the six recorded tests in this chat; its script mapping is not confirmed.
+

@@ -1,3 +1,5 @@
+import {validateEmotion} from './emotion.js';
+
 export const CATEGORIES = Object.freeze({
   credentials: { label: 'Passwords & codes', advice: 'Keep passwords and verification codes to yourself. Call the organization using a number you already trust.' },
   payment: { label: 'Payment pressure', advice: 'Pause before sending money. Gift cards and cryptocurrency are warning signs when demanded as payment.' },
@@ -16,14 +18,26 @@ export function parseCommunication(body) {
   if (typeof body.text !== 'string' || !body.text.trim() || body.text.length > 12000) throw new Error('Enter between 1 and 12,000 characters.');
   if (!Number.isSafeInteger(body.sequence) || body.sequence < 0 || body.sequence > 10000) throw new Error('Invalid sequence.');
   if (body.sessionId && !/^[a-zA-Z0-9-]{1,80}$/.test(body.sessionId)) throw new Error('Invalid session.');
-  return { channel: body.channel, text: body.text.trim(), sequence: body.sequence, sessionId: body.sessionId || null, source: body.source === 'simulation' ? 'simulation' : 'user' };
+  if(body.callerTrust!==undefined && !['unknown','trusted'].includes(body.callerTrust))throw new Error('Choose a caller verification status.');
+  let turns=[];
+  if(body.turns!==undefined){
+    if(body.channel!=='call'||!Array.isArray(body.turns)||body.turns.length>120)throw new Error('Invalid call turns.');
+    const ids=new Set();
+    turns=body.turns.map(turn=>{
+      if(!turn || typeof turn.id!=='string' || !/^[a-zA-Z0-9-]{1,80}$/.test(turn.id) || ids.has(turn.id) ||
+        !['user','contact'].includes(turn.speaker) || typeof turn.text!=='string' || !turn.text.trim() || turn.text.length>12000)throw new Error('Invalid call turn.');
+      ids.add(turn.id);return {id:turn.id,speaker:turn.speaker,text:turn.text};
+    });
+    if(turns.map(turn=>turn.speaker+': '+turn.text).join('\n')!==body.text.trim())throw new Error('Call turns do not match the transcript.');
+  }
+  return { channel: body.channel, text: body.text.trim(), turns, callerTrust:body.callerTrust||'unknown', sequence: body.sequence, sessionId: body.sessionId || null, source: body.source === 'simulation' ? 'simulation' : 'user' };
 }
-export function validateModelAnalysis(value, text) {
+export function validateModelAnalysis(value, text, turns) {
   if (!value || !RISKS.includes(value.risk) || !Array.isArray(value.reasons) || value.reasons.length > 8) throw new Error('Invalid analysis response.');
   const reasons = value.reasons.map((reason) => {
     if (!CATEGORIES[reason.code] || typeof reason.evidence !== 'string' || reason.evidence.length < 3 || reason.evidence.length > 500 || !text.includes(reason.evidence)) throw new Error('Ungrounded analysis evidence.');
     return {code: reason.code, evidence: reason.evidence, title: CATEGORIES[reason.code].label};
   });
   if (['caution', 'high'].includes(value.risk) && reasons.length === 0) throw new Error('Warning requires evidence.');
-  return {risk: value.risk, reasons, actions: value.risk === 'low' ? ['verify'] : ['pause','verify','contact']};
+  return {risk: value.risk, reasons, actions: value.risk === 'low' ? ['verify'] : ['pause','verify','contact'], ...(turns?{emotion:validateEmotion(value.emotion,turns)}:{})};
 }

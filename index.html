@@ -4,12 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#e20074" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="T-Secure" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="description" content="A little pause. A safer next step. T-Secure helps you recognize scam warning signs and verify independently." />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <title>T-Secure · A safer next step</title>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <div id="connection-status" class="connection-status" role="status" hidden>You’re offline. Safety guides and local demo message checks are available. Sign-in, live calls, and AI analysis need an internet connection.</div>
     <div id="app"><p class="boot">Getting T-Secure ready…</p></div>
     <div id="notifications" aria-live="polite" aria-atomic="true"></div>
     <dialog id="call-warning-dialog" aria-labelledby="call-warning-title" aria-describedby="call-warning-copy"></dialog>
