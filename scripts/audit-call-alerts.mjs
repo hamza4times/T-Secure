@@ -24,17 +24,17 @@ try{
     }
     await openDemo(page);
     await navigate(page,'calls');
-    await page.getByLabel('Practice scenario').selectOption('government');
-    await page.getByRole('button',{name:'Start practice call'}).click();
+    await page.getByLabel('Demonstration scenario').selectOption('government');
+    await page.getByRole('button',{name:'Start simulated call'}).click();
     await page.getByRole('region',{name:'Current call warning'}).waitFor({timeout:12000});
     await page.getByRole('button',{name:'Pause call',exact:true}).click();
     await inspect('caution');
     await page.getByRole('button',{name:'Resume call',exact:true}).click();
-    const dialog=page.getByRole('dialog',{name:'Pause and verify this caller.'});
+    const dialog=page.getByRole('dialog');
     await dialog.waitFor({timeout:15000});
     await inspect('high');
     await dialog.getByRole('button',{name:'End demo call'}).click();
-    await page.getByRole('link',{name:'Get recovery guidance'}).waitFor();
+    await page.getByRole('link',{name:/Open the Recovery Assistant/}).waitFor();
     await inspect('after');
     await context.close();
   }));

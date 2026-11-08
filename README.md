@@ -1,144 +1,176 @@
 # T-Secure
 
-A Vite + vanilla JavaScript app for senior scam protection. Includes progressive call simulations, message/link checks, a trusted contact, recovery guidance, opt-in sample-history assessments, and a T-Life concept profile.
+**Protecting the people behind every conversation.**
 
-## Run locally
+T-Secure is a hackathon prototype for AI-powered scam protection, designed first for older adults. It doesn't just flag a number or a keyword. It follows how manipulation builds across a conversation (trust, then fear, then urgency, then secrecy), predicts the harmful request that may come next, and gives a calm, explained warning before the customer acts.
 
-Requires Node.js 22.12+ (tested with Node 24).
+> This is a prototype. Calls are simulated with scripted transcripts. There is no carrier integration and no call monitoring, and T-Mobile has not approved or integrated it. T-Life and network-level integration are presented as future opportunities.
 
-    npm ci
-    npm run dev
+Stack: Vite, vanilla HTML/CSS/JavaScript, Firebase Authentication, Cloud Firestore, Vercel serverless functions, NVIDIA Nemotron (via OpenRouter) and Google Gemini.
 
-Open http://localhost:5173. With Firebase configured, this opens sign-in; “Explore the local demo” remains available. Without Firebase configuration, the app opens the labeled demo directly. Demo preferences, contacts, derived assessments, and check summaries stay in this browser. Raw pasted messages and call transcripts are never written to browser storage.
+---
 
-## Connect Firebase and OpenRouter
+## 1. Run it locally
 
-1. Create a Firebase project and web application.
-2. Enable Authentication → Email/password and Google. Configure the Google provider's support email.
-3. Create Firestore and deploy this project's rules:
+Requires Node.js 22.12+.
 
-       firebase deploy --only firestore:rules,firestore:indexes --project YOUR_PROJECT_ID
+```bash
+npm ci
+npm run dev        # http://localhost:5173
+```
 
-4. Browser configuration for t-secur1 has been added to the ignored .env file. For a new checkout, copy .env.example to .env and fill in VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID, and VITE_FIREBASE_APP_ID. The bucket and messaging sender fields are optional.
-5. The supplied project's public Auth configuration was verified and currently includes localhost. Use http://localhost:5173 for local Google sign-in. Add the exact Vercel domain before deployment; add 127.0.0.1 only if you choose to use that hostname.
-6. The supplied Firebase Admin service account is configured locally as FIREBASE_SERVICE_ACCOUNT_JSON. For a new checkout, set it to a single-line service-account JSON object for the same project, preserving private-key JSON escapes. This is a server secret.
-7. The supplied OpenRouter key is configured locally as OPENROUTER_API_KEY. OPENROUTER_MODEL defaults to the requested nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free. The key is required even for free models. Requests use https://openrouter.ai/api/v1/chat/completions; no alternate model or paid fallback is configured.
-8. Restart the dev server.
+With no `.env`, the app runs in **demo mode**: the landing page offers "Explore the demo", and every check runs with the rule engine in your browser. Demo results are always labeled as such.
 
-Only VITE_ variables enter the browser bundle. Never give server credentials that prefix. Environment files are ignored by Git. Keep provider keys and service-account JSON out of source control.
+Checks:
 
-The connected app requires a verified Firebase email before private data or analysis is available. Firebase's hosted email handler completes verification; return and choose “I've verified my email.” Google uses Firebase popup sign-in.
+```bash
+npm test           # 69 unit tests: engines, validation, providers, service, benchmark
+npm run build
+npm run test:e2e   # 34 browser tests (desktop + mobile Chrome), demo mode
+npm run test:bundle  # proves server secrets never enter the browser bundle
+# With a server running on :5173 (npm run dev or npm run preview):
+npm run test:a11y  # axe WCAG 2.1 AA across 15 routes × 2 viewports
+npm run capture    # screenshots + overflow/error report in artifacts/qa/
+```
 
-Message checks fall back to independent rules if OpenRouter is unavailable, and identify incomplete analysis. Historical assessment requires successful, grounded model extraction; it does not silently substitute a fabricated AI result. The selected endpoint does not support response_format, so JSON is requested in the prompt and evidence is validated server-side. Optional extended reasoning is disabled to meet interactive deadlines. Whitespace around fenced JSON is accepted; truncated responses are rejected.
+## 2. Environment variables
 
-Local live-service checks confirmed authenticated profile loading, consent, Nemotron assessment and communication analysis, private Firestore contact persistence, shared profile views, and assessment removal on opt-out. Firestore rules and indexes were deployed to t-secur1. Vercel still needs its own environment configuration.
+Copy `.env.example` to `.env`.
 
-## Demonstration modes
+| Variable | Where | Purpose |
+| --- | --- | --- |
+| `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID` | Browser | Firebase web config (public by design). |
+| `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID` | Browser | Optional. |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | **Server** | Single-line service-account JSON for Firebase Admin (token verification, server-written history). |
+| `AI_PROVIDER` | **Server** | `nemotron`, `gemini`, or `rules`. Empty = first provider with a key, else rules only. |
+| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | **Server** | Nemotron via OpenRouter. |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | **Server** | Gemini via the Generative Language API. Set `GEMINI_MODEL` to a current model name. |
+| `BENCHMARK_ALLOWED_EMAILS` | **Server** | Comma-separated developer emails allowed to run benchmarks on a deployed server. |
 
-- Calls: fictional text conversations; no microphone, call interception, inbox access, or automatic blocking.
-- Local messages: browser rules, labeled as such. Links are never opened or fetched.
-- Local advanced analysis: annotated synthetic evidence, explicitly labeled demo-fixture.
-- Connected analysis: authenticated server-side OpenRouter Nemotron inference plus independent rule checks.
-- T-Life preview: a concept reading the same private assessment. It does not access the real T-Life application.
+Only `VITE_` variables reach the browser. Never give a server secret that prefix. `npm run test:bundle` checks this.
 
-The sample histories demonstrate 83/100 observed risky responses, 0/100, and insufficient evidence. Zero is not a safety guarantee. This index is a prototype, not a validated probability of future fraud.
+## 3. Firebase configuration
 
-## In-call alerts
+1. Create a Firebase project, then add a **Web app**. Copy its config into the `VITE_FIREBASE_*` variables.
+2. Project settings → Service accounts → **Generate new private key**. Paste the JSON on one line into `FIREBASE_SERVICE_ACCOUNT_JSON`, keeping the `\n` escapes in the private key.
+3. Restart `npm run dev`.
 
-Call practice includes prevention guidance, real-time risk labels with highlighted transcript evidence, and recovery links after the call. A grounded caution warning shows a banner without interrupting. The first grounded high-risk warning pauses the simulation and opens a keyboard-accessible dialog with the evidence, independent-verification guidance, a trusted-contact action, and controls to end or continue the demo. Escape keeps the call paused. Reviewing the alert never clears the warning.
+## 4. Firebase Authentication
 
-Each call announces at most one caution and one high-risk escalation. Repeated tactics can update the evidence without replaying audio or reopening the dialog. Incomplete analysis is identified separately and does not itself trigger a scam alert. Starting a new call resets this alert budget.
+1. Authentication → Sign-in method: enable **Email/Password** and **Google** (set a support email).
+2. Authentication → Settings → **Authorized domains**: `localhost` is included by default. Add your Vercel domain before deploying.
 
-“Call alert audio” defaults to visual-only alerts. Users can opt into a gentle device tone or fixed spoken guidance; that preference stays in this browser. No caller content or model-generated instructions are spoken. Audio stops when the warning is reviewed or the call ends. Visual alerts remain available when the browser cannot play audio. This does not inject sound into a real phone call or implement private/binaural carrier audio.
+Behavior: sign-up requires a name, a valid email, and a password of 8+ characters with confirmation. A verification email is sent, and protected pages, private Firestore data, and every API stay locked until the email is verified (enforced by the rules and the server, not just the UI). Password reset and Google popup sign-in are included. New accounts go through the six-step **Personal Protection Profile** onboarding.
+
+## 5. Firestore and security rules
+
+Create a Firestore database, then deploy the rules:
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes --project YOUR_PROJECT_ID
+```
+
+| Path | Written by | Contents |
+| --- | --- | --- |
+| `users/{uid}` | Owner | `displayName`, `email`, `createdAt`, `onboardingCompleted`, `protectionEnabled`, `preferences` (text size, contrast, motion, language, warning style, warning sound, verification methods, "has family passphrase" flag) |
+| `users/{uid}/trustedContacts/{id}` | Owner | `displayName`, `relationshipLabel`, `phone`, `verificationPreference`, `createdAt` (up to 5) |
+| `users/{uid}/incidents/{id}` | **Server only** | The brief's *analyses*: channel, risk level, evidence score, tactic and category codes, predicted action code, analysis source, timestamps. Owner may update only the recovery checklist. |
+| `users/{uid}/warnings/{id}` | Owner | `warningType`, `warningLevel`, `displayedAt` (server time), `customerAction` |
+| `evaluationScenarios/{id}` | **Server only** | Benchmark scenarios, expected labels, and measured `modelResults` |
+
+The rules allow only the verified owner to read their data, validate every field and value against an allowlist (no score, psychological, or health fields can be written), and deny all client access to evaluation results and rate limits. **No raw message, transcript, evidence quote, or model prose is ever stored.**
+
+Rules tests (needs Firebase CLI and Java 21+):
+
+```bash
+firebase emulators:exec --only firestore --project demo-tsecure "npm run test:rules"
+firebase emulators:exec --only auth,firestore --project demo-tsecure "npm run test:auth"
+```
+
+## 6. AI provider configuration
+
+Pipeline (`server/service.js`):
+
+1. Receive the message or transcript (authenticated, rate-limited, 12,000-character cap).
+2. **Deterministic checks**: the rule engine and the conversation-manipulation engine. Only the other party's words are scanned, never the customer's replies.
+3. Send the text to the configured provider (`server/ai-provider.js` → `nemotron.js` or `gemini.js`). Both use the same prompt (`server/prompt.js`).
+4. **Validate** the JSON (`shared/report.js`): known risk levels and tactic names only, confidence values in 0–1, and every evidence quote must appear verbatim in the caller's words. Anything else is rejected.
+5. **Risk engine**: the model can raise the deterministic rating by one level at most, and can never lower it.
+6. Build the structured report: `communication_type`, `risk_level`, `risk_score`, `detected_tactics[]`, `predicted_next_action`, `recommended_action`, `explanation`. Safety advice is written by the application, never by the model.
+7. Show a proportional warning (Low / Elevated / High).
+
+If the provider fails, the result is marked **incomplete**, rule warnings stay active, and the UI says the AI analysis could not finish. It never presents a fallback as an AI result. With no provider configured, the UI says "Independent rule checks (no AI provider configured)".
+
+The **evidence score** (0–100) grows only with quoted evidence, stays inside its level's band (Low 0–29, Elevated 30–69, High 70–95), and never reaches 100. It is not a probability of fraud.
+
+### Model benchmarking
+
+Developer page: `#/developer` (linked in the footer). It runs 12 fixed synthetic scenarios (Scenarios A, B, and C plus 9 others, including 5 that are not scams) through Nemotron, Gemini, or the rule baseline, and shows **only measured results**:
+
+- scam vs. not scam
+- acceptable risk level
+- benign scenarios kept low
+- next-action match
+- tactic recall and precision
+- median latency
+- tokens
+- provider-reported cost
+
+Explanations are shown side by side for human review. Results are stored in `evaluationScenarios`. The rule baseline was written alongside these scenarios, so its scores are optimistic, and 12 synthetic scenarios cannot establish real-world accuracy. The page says so.
+
+On a deployed server, benchmarking requires a verified account listed in `BENCHMARK_ALLOWED_EMAILS`. In demo mode, only the rule baseline runs (in the browser).
+
+## 7. Deploy to Vercel
+
+1. Import the repository in Vercel (the Vite preset is detected; `vercel.json` sets the build, output, function duration, and security headers).
+2. Add every variable from section 2 under Project → Settings → Environment Variables.
+3. Deploy, then add the Vercel domain to Firebase **Authorized domains**.
+4. Smoke-test: sign-up, verification email, Google sign-in, onboarding, a message check, a simulated call, history, and deleting history.
+
+API routes (all need `Authorization: Bearer <Firebase ID token>` from a verified user):
+
+| Route | Purpose |
+| --- | --- |
+| `POST /api/analyze-sms` | Message or link analysis |
+| `POST /api/analyze-call` | Progressive call-transcript analysis |
+| `POST /api/analyze` | Either channel (kept for compatibility) |
+| `GET /api/benchmark-models` | Provider status and stored results (developers) |
+| `POST /api/benchmark-models` | Run the scenarios on one provider (developers) |
+
+`scripts/patch-jwks-rsa.mjs` works around an `ERR_REQUIRE_ESM` crash in firebase-admin's jwks-rsa dependency on Vercel. It runs on install and build ([auth0/node-jwks-rsa#507](https://github.com/auth0/node-jwks-rsa/issues/507)).
+
+## 8. Demonstration walkthrough (about 6 minutes)
+
+1. **Landing** (`/`): the tagline, the "scams don't arrive as one word" problem, the three levels of protection, the five engines, the privacy commitment, and why a carrier should care.
+2. **Explore the demo → onboarding**: choose "Fewer interruptions", tick "family passphrase", set text size to **Large** (the whole app scales live), skip or add a trusted contact, then acknowledge privacy.
+3. **Dashboard**: protection status, quick access, and recent activity. No invented statistics.
+4. **Check a message → "Scenario B · Bank suspension"**: High risk. Shows the claimed identity (your bank), urgency, fear, the link request and the identity request, a note that the message refers to a link, a recommended action, the manipulation breakdown, and the predicted next step with its uncertainty. Then try **"Urgent but genuine"**: it stays **Low**, because a deadline alone isn't a scam.
+5. **Call protection → Scenario A** (turn on "Play synthetic voices" if you like): the transcript and timer advance line by line. The arrest claim at turn 3 raises Elevated. At turn 5 ("I need money immediately") the prediction appears: "the caller may ask you to send money" (*Likely*). At turn 7 ("Please don't tell anyone") the call pauses with **Potential financial scam**, *before* the money request. Walk through **How do I verify this person?** (your chosen methods first, including the passphrase), **Show detected evidence**, **I need help**, and **Dismiss warning**. Resume to see the request arrive at turn 9 and the timeline mark "Predicted at turn 5, before the request at turn 9".
+6. **Scenario C** (urgent but genuine call): a hospital emergency with fear and urgency, but no money, no secrecy, and an invitation to call back. It plays to the end at **Low risk** with no warning.
+7. **Recovery Assistant**: "I sent money", then "I shared a verification code", then "I am not sure what happened" with its guided questions. The steps never promise money can be recovered.
+8. **Protection history**: each check with its date, type, risk, indicators, predicted step, and **your action** ("Dismissed the warning"). Then **Settings → Delete all history**.
+9. **Developer tools**: run the scenarios to show measured, caveated comparisons.
 
 ## Architecture
 
-- src/: frontend, Firebase client, call scheduler, views, and styles.
-- shared/: independent rules, runtime validation, scoring, and synthetic fixtures.
-- server/: Firebase Admin store, authentication, service logic, OpenRouter adapter, and HTTP wrapper.
-- api/: Vercel functions, also served by the development server.
-- tests/ and e2e/: behavior, security-rule, and browser tests.
+```
+src/            main.js (routing, events), client.js (Firebase + demo data), views.js (app pages)
+src/pages/      landing.js, onboarding.js, developer.js
+src/            call-session.js (progressive playback + timer), call-voice.js (synthetic TTS), call-audio.js (warning sounds)
+src/            styles.css, components.css, tokens.css
+shared/         prediction.js (engines 2–4), detection.js (engine 1 rules + link inspection), network.js (engine 5, synthetic),
+                report.js (structured JSON + model validation), evaluation.js (benchmark scenarios + scoring), fixtures.js, schema.js
+server/         service.js, ai-provider.js, nemotron.js, gemini.js, prompt.js, http.js, auth.js, firebase.js, developer.js
+api/            Vercel functions (also served by scripts/dev.mjs locally)
+tests/, e2e/    unit, rules, and browser tests
+```
 
-### API
+## Product rules this build follows
 
-All routes require Authorization: Bearer <Firebase ID token> for a verified user. Responses are not cached.
-
-| Route | Behavior |
-| --- | --- |
-| POST /api/analyze | Accepts channel, text, sequence, optional sessionId and source; returns grounded reasons and a server session ID. |
-| POST /api/profile/consent | Stores enabled, allowlisted historySetId, consent version/time, and an incremented revision; removes the previous assessment. |
-| POST /api/profile/analyze | Loads sample history, extracts evidence, computes the score, and commits only if consent still matches. |
-| GET /api/profile | Returns the owner's consent and assessment. |
-| DELETE /api/profile | Deletes the assessment and invalidates pending results. |
-
-Limits: 12,000 text characters, a 60 KB HTTP body cap, 45 ordinary requests/minute/user, and 8 profile mutations/minute/user. Calls permit one analysis in flight with a minimum three-second interval. Provider timeouts are 8 seconds for communication and 25 seconds for sample history. Failed analysis endpoints back off for at least 30 seconds after 429/503, respecting Retry-After. Call network errors also back off. Existing warnings remain active; consent changes, deletion, and unrelated analysis routes remain available.
-
-### Stored data
-
-    users/{uid}/settings/contact
-    users/{uid}/private/consent
-    users/{uid}/private/assessment
-    users/{uid}/incidents/{sessionId}
-    _limits/{uid-kind}
-
-Contacts are owner-managed with bounded fields. Scores, consent revisions, and analysis summaries are server-written. Clients can update only reviewed recovery-step identifiers on incidents. Other access is denied. Admin operations repeat identity and ownership checks because Admin bypasses rules.
-
-No raw message, transcript, evidence excerpt, provider output, or token is persisted in incident documents or application logs. Sample fixtures are synthetic. Derived history remains until deletion.
-
-Opting out deletes the assessment transactionally. Deletion also advances the consent revision so an in-flight job cannot restore it.
-
-## Verification
-
-    npm test
-    npm run build
-    npm run test:e2e
-    npm run test:bundle
-
-Browser tests use installed Google Chrome and a separate demo-only server on port 5175, isolated from the live Firebase .env configuration. If Chrome is unavailable, install a Playwright browser and change the configured channel.
-
-Local Firebase tests require Firebase CLI and Java 21+:
-
-    firebase emulators:exec --only firestore --project demo-tsecure "npm run test:rules"
-    firebase emulators:exec --only auth,firestore --project demo-tsecure "npm run test:auth"
-
-Auth tests use synthetic accounts and a separate development server on port 5174. Emulator connections are development-only.
-
-With the normal preview server running:
-
-    npm run test:a11y
-    npm run capture
-
-For call alerts across desktop, mobile, landscape, and zoom-equivalent viewports:
-
-    node scripts/audit-call-alerts.mjs
-
-Reports/screenshots go under ignored artifacts/qa/. Captures check overflow, browser exceptions, and a 720px CSS viewport equivalent to 200% zoom on a 1440px display. Automated accessibility checks complement manual review.
-
-The bundle check builds with synthetic server-secret sentinels and verifies that they never enter browser output. Expected permission-denied messages appear during denied-access rule tests.
-
-See [validation notes](docs/VALIDATION.md) for completed checks and deployment limitations.
-
-Patched dependency overrides address SDK advisories without downgrading Firebase. Keep package-lock.json, rerun tests when upgrading, and check npm audit.
-
-Firebase Admin 14.5.0 brings jwks-rsa 4.1.0, whose synchronous CommonJS imports of ESM-only jose 6 can crash Vercel functions with ERR_REQUIRE_ESM. scripts/patch-jwks-rsa.mjs replaces those two imports with asynchronous imports while retaining the installed versions and verification logic. Both postinstall and the build command apply this version-checked, idempotent patch, including when Vercel reuses dependency caches. Recheck the patch when upgrading jwks-rsa. The upstream compatibility issue is tracked at [auth0/node-jwks-rsa#507](https://github.com/auth0/node-jwks-rsa/issues/507).
-
-The runtime regression in npm test disables synchronous require(ESM), boots every API handler, checks unauthenticated rejection, and validates real RSA signing-key conversion and tampered-signature rejection. API response tests also cover platform text/HTML errors and malformed successful responses; users receive a readable service error instead of a JSON parser exception.
-
-## Deploy to Vercel
-
-1. Sign in to Vercel CLI or import the repository in its dashboard.
-2. Use the Vite preset; vercel.json configures the output, API duration, and headers.
-3. Add Firebase browser configuration and backend secrets as Vercel environment variables.
-4. Run vercel --prod, then authorize that exact domain in Firebase Authentication.
-5. Smoke-test verification email, Google popup, privacy isolation, message analysis, profile opt-in, and opt-out.
-
-Without configuration, deployment exposes only the labeled local demo. Real T-Life/carrier support needs an authorized API and identity contract. Firebase email matching alone is not a T-Mobile identity link.
+No carrier integration is claimed, and no real call is monitored. There are no fabricated statistics or benchmark numbers, no customer vulnerability scores, and no profiling of a caller's personality or anyone's emotions. Trusted contacts are never contacted automatically. Every warning explains its evidence and uncertainty, and a legitimate-call scenario is included. API keys stay server-side, and private records are owner-only.
 
 ## Sources
 
-- [Firebase authentication](https://firebase.google.com/docs/auth/web/start)
-- [OpenRouter model](https://openrouter.ai/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free)
-- [OpenRouter API](https://openrouter.ai/docs/api/reference/overview)
-- [FTC recovery guidance](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed)
-- [Vishing survey](https://doi.org/10.1016/j.csl.2025.101802)
-- [NIST measurement guidance](https://airc.nist.gov/airmf-resources/playbook/measure/)
+- [Firebase Auth](https://firebase.google.com/docs/auth/web/start) · [Firestore rules](https://firebase.google.com/docs/firestore/security/get-started)
+- [OpenRouter API](https://openrouter.ai/docs/api/reference/overview) · [Gemini API](https://ai.google.dev/api/generate-content)
+- [FTC: what to do if you were scammed](https://consumer.ftc.gov/articles/what-do-if-you-were-scammed) · [ReportFraud.ftc.gov](https://reportfraud.ftc.gov/) · [IC3](https://www.ic3.gov/) · [IdentityTheft.gov](https://www.identitytheft.gov/)

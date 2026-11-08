@@ -1,7 +1,9 @@
 import { backend, createFirestoreStore } from './firebase.js';
 import { requireVerified, httpError } from './auth.js';
 import { createService } from './service.js';
-import { callNemotron, modelName } from './nemotron.js';
+import { resolveProvider } from './ai-provider.js';
+
+const LIMITS={analysis:45,benchmark:4};
 
 export function protectedRoute(methods, operation, kind='analysis') {
   return async (req,res) => {
@@ -17,10 +19,10 @@ export function protectedRoute(methods, operation, kind='analysis') {
       const {auth,db}=backend();
       const user=await requireVerified(req.headers,(token,revoked)=>auth.verifyIdToken(token,revoked));
       const store=createFirestoreStore(db);
-      if (!await store.takeRateLimit(user.uid,kind,kind === 'profile' ? 8 : 45)) throw httpError(429,'Please wait a minute before trying again.');
-      const service=createService({store,model:callNemotron,modelName});
+      if (!await store.takeRateLimit(user.uid,kind,LIMITS[kind] || 45)) throw httpError(429,'Please wait a minute before trying again.');
+      const service=createService({store,provider:resolveProvider(),resolve:resolveProvider});
       const body=typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-      const result=await operation(service,user.uid,body || {});
+      const result=await operation(service,user.uid,body || {},{user,store});
       return res.status(200).json(result);
     } catch (error) {
       const status=error.status || (error instanceof SyntaxError ? 400 : 500);

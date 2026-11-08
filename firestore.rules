@@ -5,29 +5,82 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid
         && request.auth.token.email_verified == true;
     }
-    match /users/{uid}/settings/contact {
+    function shortString(value, max) {
+      return value is string && value.size() <= max;
+    }
+    function optionalIn(data, key, allowed) {
+      return !(key in data) || data[key] in allowed;
+    }
+    function optionalBool(data, key) {
+      return !(key in data) || data[key] is bool;
+    }
+    // Preferences customize the experience. No psychological, health, or vulnerability fields exist.
+    function validPreferences(p) {
+      return p is map
+        && p.keys().hasOnly(['language','textSize','highContrast','reduceMotion','warningStyle','callAlertAudio','verificationMethods','hasFamilyPassphrase'])
+        && optionalIn(p, 'language', ['en','es'])
+        && optionalIn(p, 'textSize', ['standard','large','largest'])
+        && optionalBool(p, 'highContrast') && optionalBool(p, 'reduceMotion') && optionalBool(p, 'hasFamilyPassphrase')
+        && optionalIn(p, 'warningStyle', ['standard','high-only'])
+        && optionalIn(p, 'callAlertAudio', ['visual','tone','speech'])
+        && (!('verificationMethods' in p) || (p.verificationMethods is list && p.verificationMethods.size() <= 4
+          && p.verificationMethods.hasOnly(['callback','passphrase','other-channel','ask-family'])));
+    }
+    match /users/{uid} {
       allow read, delete: if owner(uid);
       allow create, update: if owner(uid)
-        && request.resource.data.keys().hasOnly(['name','relationship','phone'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 80
-        && request.resource.data.relationship is string && request.resource.data.relationship.size() <= 60
+        && request.resource.data.keys().hasOnly(['displayName','email','createdAt','updatedAt','onboardingCompleted','protectionEnabled','preferences','privacyAcknowledgedAt'])
+        && shortString(request.resource.data.get('displayName', ''), 80)
+        && request.resource.data.get('email', request.auth.token.get('email', null)) == request.auth.token.get('email', null)
+        && request.resource.data.get('onboardingCompleted', false) is bool
+        && request.resource.data.get('protectionEnabled', true) is bool
+        && request.resource.data.get('createdAt', request.time) is timestamp
+        && request.resource.data.get('updatedAt', request.time) is timestamp
+        && request.resource.data.get('privacyAcknowledgedAt', request.time) is timestamp
+        && validPreferences(request.resource.data.get('preferences', {}));
+    }
+    // Optional people the customer may choose to call. Never contacted automatically.
+    match /users/{uid}/trustedContacts/{contactId} {
+      allow read, delete: if owner(uid);
+      allow create, update: if owner(uid) && contactId.matches('^[A-Za-z0-9_-]{1,40}$')
+        && request.resource.data.keys().hasOnly(['displayName','relationshipLabel','phone','verificationPreference','createdAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0 && request.resource.data.displayName.size() <= 80
+        && shortString(request.resource.data.get('relationshipLabel', ''), 60)
         && request.resource.data.phone is string
-        && request.resource.data.phone.matches('^[+0-9() .-]{7,30}$');
+        && request.resource.data.phone.matches('^[+0-9() .-]{7,30}$')
+        && request.resource.data.get('verificationPreference', 'callback') in ['callback','passphrase','other-channel']
+        && request.resource.data.createdAt is timestamp;
     }
-    match /users/{uid}/private/{docId} {
-      allow read: if owner(uid) && docId in ['consent','assessment'];
-      allow write: if false;
+    // Warnings shown to the customer and what they chose to do. No transcript content.
+    match /users/{uid}/warnings/{warningId} {
+      function validAction(action) {
+        return action in ['shown','viewed-verification','viewed-evidence','asked-for-help','dismissed','ended-call','continued','called-trusted-contact'];
+      }
+      allow read, delete: if owner(uid);
+      allow create: if owner(uid) && warningId.matches('^[A-Za-z0-9_-]{1,80}$')
+        && request.resource.data.keys().hasOnly(['warningType','warningLevel','displayedAt','customerAction','incidentId','channel'])
+        && request.resource.data.warningType in ['financial','account-takeover','remote-access','payment-card','general']
+        && request.resource.data.warningLevel in ['caution','high']
+        && request.resource.data.displayedAt == request.time
+        && validAction(request.resource.data.customerAction)
+        && shortString(request.resource.data.get('incidentId', ''), 80)
+        && request.resource.data.get('channel', 'call') in ['call','message'];
+      allow update: if owner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['customerAction'])
+        && validAction(request.resource.data.customerAction);
     }
+    // Analyses (the brief's users/{uid}/analyses) are written only by the server.
     match /users/{uid}/incidents/{incidentId} {
       allow read, delete: if owner(uid);
       allow update: if owner(uid)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['recovery'])
         && request.resource.data.recovery is list
-        && request.resource.data.recovery.size() <= 6
-        && request.resource.data.recovery.hasOnly(['stop','contact-bank','passwords','devices','report','trusted']);
+        && request.resource.data.recovery.size() <= 12
+        && request.resource.data.recovery.hasOnly(['stop','contact-bank','evidence','report','monitor','trusted','account-provider','passwords','carrier','link-check','devices','credit']);
       allow create: if false;
     }
+    // evaluationScenarios, _limits, and everything else: server only.
     match /{document=**} { allow read, write: if false; }
   }
 }

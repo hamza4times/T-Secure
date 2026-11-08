@@ -7,7 +7,7 @@ test('Firebase functions boot and signing keys work without CommonJS require(ESM
     import assert from 'node:assert/strict';
     import {createRequire} from 'node:module';
     import {generateKeyPairSync,sign,verify} from 'node:crypto';
-    for(const [path,method] of [['./api/profile.js','GET'],['./api/analyze.js','POST'],['./api/profile/analyze.js','POST'],['./api/profile/consent.js','POST']]){
+    for(const [path,method] of [['./api/analyze.js','POST'],['./api/analyze-sms.js','POST'],['./api/analyze-call.js','POST'],['./api/benchmark-models.js','GET'],['./api/benchmark-models.js','POST']]){
       const {default:handler}=await import(path);
       const res={setHeader(){},status(status){this.statusCode=status;return this;},json(body){this.body=body;return this;}};
       await handler({method,headers:{}},res);

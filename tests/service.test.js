@@ -3,17 +3,11 @@ import assert from 'node:assert/strict';
 import { requireVerified } from '../server/auth.js';
 import { createService } from '../server/service.js';
 import { CallSession } from '../src/call-session.js';
-import { getHistory } from '../shared/fixtures.js';
 
 function makeStore() {
-  const state = {enabled:true,revision:1,assessment:null,sessions:new Map(),historySetId:'pressure'};
+  const state = {sessions:new Map()};
   return {
     state,
-    async getConsent() { return {enabled:state.enabled,revision:state.revision,historySetId:state.historySetId}; },
-    async setConsent(uid, enabled, historySetId) { state.enabled=enabled;state.historySetId=historySetId;state.revision++;state.assessment=null;return this.getConsent(); },
-    async commitAssessment(uid, revision, assessment) { if (!state.enabled || revision !== state.revision) return false; state.assessment=assessment;return true; },
-    async getAssessment() { return state.assessment; },
-    async clearAssessment() { state.revision++;state.assessment=null; },
     async saveIncident(uid, id, data) { const key=uid+':'+id;const previous=state.sessions.get(key); if (!previous || previous.sequence < data.sequence) state.sessions.set(key,data); },
     async getIncident(uid,id) { return state.sessions.get(uid+':'+id); },
     async takeRateLimit() { return true; },
@@ -46,46 +40,6 @@ test('a session id cannot expose or overwrite another user incident', async () =
 test('invalid communication is rejected as a client error', async () => {
   const service=createService({store:makeStore(),model:async()=>({risk:'low',reasons:[]})});
   await assert.rejects(service.analyze('a',{channel:'message',text:'',sequence:1}),(e)=>e.status===400);
-});
-test('deleting an assessment invalidates an in-flight analysis without disabling standard protection', async () => {
-  const store=makeStore();
-  let finish;
-  const service=createService({store,model:()=>new Promise((resolve)=>{finish=resolve;})});
-  const pending=service.assess('a',{historySetId:'pressure'});
-  while(!finish)await new Promise((r)=>setImmediate(r));
-  await service.deleteAssessment('a');
-  finish({opportunities:getHistory('pressure').expected});
-  await assert.rejects(pending,(e)=>e.status===409);
-  assert.equal(store.state.assessment,null);
-  assert.equal(store.state.enabled,true);
-});
-test('consent disabled while model is working prevents late profile restoration', async () => {
-  const store=makeStore();
-  let resolveModel;
-  const service=createService({store,model:() => new Promise((resolve) => {resolveModel=resolve;})});
-  const pending=service.assess('a',{historySetId:'pressure'});
-  while (!resolveModel) await new Promise((r) => setImmediate(r));
-  await service.setConsent('a',{enabled:false,historySetId:'pressure'});
-  resolveModel({opportunities:getHistory('pressure').expected});
-  await assert.rejects(pending,(e) => e.status === 409);
-  assert.equal(store.state.assessment,null);
-});
-test('profile analysis requires affirmative consent and allows only sample histories', async () => {
-  const store=makeStore();
-  const service=createService({store,model:async () => ({opportunities:[]})});
-  store.state.enabled=false;
-  await assert.rejects(service.assess('a',{historySetId:'pressure'}), (e) => e.status === 403);
-  store.state.enabled=true;
-  await assert.rejects(service.assess('a',{historySetId:'user-upload'}));
-});
-test('profile is calculated from extracted evidence and contains no raw turns', async () => {
-  const store=makeStore();
-  const service=createService({store,model:async () => ({opportunities:getHistory('pressure').expected})});
-  const result=await service.assess('a',{historySetId:'pressure'});
-  assert.equal(result.score,83);
-  assert.equal(result.coverage.assessable,6);
-  assert.equal(result.analysisSource,'hybrid');
-  assert.ok(!JSON.stringify(store.state.assessment).includes('gift cards now'));
 });
 test('simulated call rejects a response arriving after it was ended', async () => {
   let resolveAnalysis;

@@ -2,9 +2,9 @@ import { createServer, loadEnv } from 'vite';
 Object.assign(process.env,loadEnv('development',process.cwd(),''));
 const routes={
   '/api/analyze':'../api/analyze.js',
-  '/api/profile':'../api/profile.js',
-  '/api/profile/analyze':'../api/profile/analyze.js',
-  '/api/profile/consent':'../api/profile/consent.js',
+  '/api/analyze-sms':'../api/analyze-sms.js',
+  '/api/analyze-call':'../api/analyze-call.js',
+  '/api/benchmark-models':'../api/benchmark-models.js',
 };
 const server=await createServer({
   server:{host:'127.0.0.1',port:Number(process.env.TSECURE_PORT||5173),strictPort:true},

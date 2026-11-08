@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { analyzeText, mergeAnalysis } from '../shared/detection.js';
-import { calculateAssessment, validateOpportunities } from '../shared/scoring.js';
 import { parseCommunication, validateModelAnalysis } from '../shared/schema.js';
 
 test('warns about a request to disclose a verification code', () => {
@@ -33,49 +32,3 @@ test('communication rejects oversized content and invalid sequence', () => {
   assert.throws(() => parseCommunication({channel:'call',text:'hello',sequence:-1}));
 });
 
-const conversations = [
-  {id:'c1',turns:[{id:'a',speaker:'contact',text:'Read me your code'},{id:'b',speaker:'user',text:'I will give it to you'}]},
-  {id:'c2',turns:[{id:'a',speaker:'contact',text:'Send the gift cards'},{id:'b',speaker:'user',text:'I will call my bank instead'}]},
-  {id:'c3',turns:[{id:'a',speaker:'contact',text:'Pay and keep this secret'},{id:'b',speaker:'user',text:'I will send the money'}]},
-];
-const evidence = [
-  {id:'1',conversationId:'c1',requestTurnId:'a',responseTurnId:'b',category:'credentials',classification:'risky',evidence:'I will give it to you'},
-  {id:'2',conversationId:'c1',requestTurnId:'a',responseTurnId:'b',category:'urgency',classification:'unclear',evidence:'I will give it to you'},
-  {id:'3',conversationId:'c2',requestTurnId:'a',responseTurnId:'b',category:'payment',classification:'protective',evidence:'I will call my bank instead'},
-  {id:'4',conversationId:'c3',requestTurnId:'a',responseTurnId:'b',category:'secrecy',classification:'risky',evidence:'I will send the money'},
-];
-test('score excludes unclear responses and requires enough distinct evidence', () => {
-  const result = calculateAssessment(evidence);
-  assert.equal(result.score, null);
-  assert.equal(result.coverage.assessable, 3);
-});
-test('five opportunities across three conversations produce a hand-calculated score', () => {
-  const result = calculateAssessment([
-    {id:'1',conversationId:'a',classification:'risky',category:'payment'},
-    {id:'2',conversationId:'a',classification:'risky',category:'credentials'},
-    {id:'3',conversationId:'b',classification:'protective',category:'urgency'},
-    {id:'4',conversationId:'b',classification:'protective',category:'secrecy'},
-    {id:'5',conversationId:'c',classification:'protective',category:'family'},
-  ]);
-  assert.equal(result.score, 40);
-  assert.equal(result.coverage.risky, 2);
-});
-test('incoming scam volume without user responses cannot create a score', () => {
-  assert.equal(calculateAssessment([]).score, null);
-});
-test('duplicate model evidence cannot inflate score coverage', () => {
-  const valid = validateOpportunities([evidence[0], {...evidence[0], id:'duplicate'}], conversations);
-  assert.equal(valid.length, 1);
-});
-test('a single user reply cannot be counted repeatedly under different requests', () => {
-  const conversation={id:'one',turns:[
-    {id:'q1',speaker:'contact',text:'Send money.'},{id:'q2',speaker:'contact',text:'Send a code.'},
-    {id:'r',speaker:'user',text:'I will send it.'},
-  ]};
-  const items=['q1','q2'].map((requestTurnId)=>({conversationId:'one',requestTurnId,responseTurnId:'r',category:'payment',classification:'risky',evidence:'I will send it.'}));
-  assert.equal(validateOpportunities(items,[conversation]).length,1);
-});
-test('scoring rejects invented evidence and contact turns presented as user responses', () => {
-  assert.throws(() => validateOpportunities([{...evidence[0],evidence:'made up'}], conversations));
-  assert.throws(() => validateOpportunities([{...evidence[0],responseTurnId:'a',evidence:'Read me your code'}], conversations));
-});

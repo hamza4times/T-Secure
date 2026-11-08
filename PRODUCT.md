@@ -6,16 +6,16 @@
 web
 
 ## Stack
-User-approved Vite, HTML, CSS, vanilla JavaScript, Firebase Auth and Firestore, Nemotron, Vercel.
+Vite, HTML, CSS, vanilla JavaScript, Firebase Auth and Firestore, Vercel functions, NVIDIA Nemotron (OpenRouter) and Google Gemini behind a provider abstraction, with a rule-based fallback.
 
 ## Users and purpose
-Seniors need understandable scam warnings and an easy way to pause and independently verify. Before/during/after protection, rather than a promise to identify all fraud.
+Older adults first, then all customers. Predictive conversation protection: follow how manipulation develops, predict the next harmful request with its uncertainty, and intervene before the customer acts. Before / during / after protection.
 
 ## Confirmed constraints
-The implementation plan in this chat is approved. Live calls and historical conversations are synthetic demonstrations. Pasted text receives real rules and, when configured, Nemotron analysis. Historical analysis is opt-in and produces an explained demo index. The T-Life view is a concept sharing the same private profile, not an integration with the real app. No automatic blocking or caregiver dashboard.
+Calls are simulated with scripted transcripts and optional browser text-to-speech; there is no carrier integration or call monitoring. Pasted text receives real rule checks and, when configured, AI analysis with grounded validation. There is no customer vulnerability or gullibility score, and no caller or customer psychological profiling. The Protection Profile only customizes warnings, accessibility, and verification. Trusted contacts are never contacted automatically. Benchmarks show measured results only. T-Life is a concept preview, not an integration.
 
 ## Brand commitments
-T-Secure, T-Mobile-inspired magenta, calm and reassuring language. No invented carrier access or protection statistics.
+T-Secure, T-Mobile-inspired magenta, calm and reassuring language. No invented carrier access, protection statistics, or accuracy claims.
 
 ## Accessibility
-20px body text, 48px minimum action targets, keyboard and screen-reader support, reduced motion, readable mobile and zoom layouts.
+20px body text with Large and Largest options, high contrast and reduced motion settings, 48px minimum action targets, keyboard and screen-reader support, readable mobile and zoom layouts.
